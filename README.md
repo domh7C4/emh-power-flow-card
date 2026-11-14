@@ -1,12 +1,24 @@
 # EMH Power Flow Card
 
+[![Version](https://img.shields.io/badge/Version-1.0.0-00b7c8)](./CHANGELOG.md)
+[![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](LICENSE)
+[![Home Assistant](https://img.shields.io/badge/Home_Assistant-Lovelace-41BDF5?logo=homeassistant&logoColor=white)](https://www.home-assistant.io/)
+[![Buy Me a Coffee](https://img.shields.io/badge/Buy_Me_a_Coffee-domhoe2023-FFDD00?logo=buymeacoffee&logoColor=black)](https://buymeacoffee.com/domhoe2023)
+
 **Visualisierung des Energieflusses in Home Assistant – für Photovoltaik, Stromnetz, Batteriespeicher, Haus und bis zu sechs individuelle Verbraucher.**
 
 Die EMH Power Flow Card ist eine eigenständige Lovelace-Custom-Card von **EMH – Effiziente Energielösungen**. Sie stellt die aktuellen Leistungsflüsse übersichtlich dar, berechnet den Hausverbrauch aus Messwerten und zeigt die geschätzte Herkunft des verbrauchten Stroms. Die Karte besitzt einen grafischen Home-Assistant-Konfigurationseditor und ist für Desktop und Mobilgeräte ausgelegt.
 
 ![EMH Power Flow Card – Desktop](assets/desktop.png)
 
-![EMH Power Flow Card – Mobil](assets/mobile.png)
+![EMH Power Flow Card – Mobil mit 3 Individual-Kacheln (untere Rasterzeile)](assets/mobile.png)
+
+<details>
+<summary>Mobilansicht mit 4 bis 6 Individual-Kacheln</summary>
+
+![EMH Power Flow Card – Mobil mit 4 Individual-Kacheln (zwei Rasterzeilen)](assets/mobile-4.png)
+
+</details>
 
 
 
@@ -19,10 +31,10 @@ Die EMH Power Flow Card ist eine eigenständige Lovelace-Custom-Card von **EMH �
 - **Batterieanzeige:** Ladezustand (SOC) neben dem Batteriesymbol, dynamische Symbolfüllung, optional SOC-abhängige Symbol-/Textfarbe. Die äußere Ringfarbe bleibt separat einstellbar.
 - **Auslastungsringe:** Ringwert und Höchstwert wahlweise fest oder über Entitäten, Auswahl zwischen Leistungs- und SOC-Ring für den Speicher sowie einstellbare Ringbreite.
 - **Animierter Energiefluss:** Lichtpunkte, Kometen, Impulse oder fließende Striche; Richtungsanzeige für Netz und Batterie. Geschwindigkeit unabhängig von der aktuellen Leistung.
-- **Bis zu sechs Individual-Kacheln:** Drei pro Reihe; je Kachel Haupt-Entität, Bezeichnung, Symbol, Zusatzzeile, Einheit, Schwellwerte, Aktiv-Hervorhebung, Multiplikator, Erzeuger-Modus und Navigation.
+- **Bis zu sechs Individual-Kacheln:** Drei pro Reihe; mobil erscheinen 1–3 Kacheln in der unteren Rasterzeile, ab 4 Kacheln in zwei Zeilen; je Kachel Haupt-Entität, Bezeichnung, Symbol, Zusatzzeile, Einheit, Schwellwerte, Aktiv-Hervorhebung, Multiplikator, Erzeuger-Modus und Navigation.
 - **Status und Informationen:** LIVE-/Teilstatus und Hilfe-Button rechts oben. Unter der Grafik optionale Fußzeile mit Energieanteilen und dem fossilen Stromanteil.
 - **Grafischer Konfigurationseditor:** Entitätsauswahl, Auswahlfelder, native Farbwähler mit HEX-Eingabe und erweiterbare Bereiche für alle wesentlichen Optionen.
-- **Darstellung:** Automatische, helle oder dunkle Farbgebung; transparenter Kartenhintergrund; kompakte Mobilansicht; Animation mit optionalem Energiesparmodus.
+- **Darstellung:** Automatische, helle oder dunkle Farbgebung; transparenter Kartenhintergrund; platzsparende Mobilansicht mit 30 px zusätzlichem oberen Abstand für die Energieflussgrafik; Animation mit optionalem Energiesparmodus.
 - **Navigation:** Lovelace-Pfade, Hash-Links (z. B. Popups) und externe HTTP(S)-Adressen.
 
 **Wichtig:** Die Card visualisiert und berechnet Leistungen. Sie steuert keine Wechselrichter oder Wallboxen und begrenzt keine Netzleistung. Die angezeigten Energieherkunftsanteile sind ohne separate Herkunftssensoren eine Näherung.
@@ -38,35 +50,42 @@ Es ist keine eigene Home-Assistant-Integration und kein separates Backend erford
 
 ## Installation
 
-### Über HACS / Marketplace
+### Home Assistant Marketplace (ab Home Assistant 2026.11)
 
-1. Den öffentlichen GitHub-Repository-Inhalt unter dem Namen `emh-power-flow-card` veröffentlichen.
-2. In HACS **Benutzerdefinierte Repositories** öffnen, die GitHub-Repository-URL einfügen und als Typ **Dashboard** hinzufügen. Bei Home-Assistant-Versionen mit neuem Marketplace erfolgt dies über dessen Funktion **Add from link**.
-3. Die Card installieren. HACS bzw. Marketplace übernimmt in üblichen UI-verwalteten Dashboards die JavaScript-Ressource automatisch.
-4. Dashboard neu laden und Karte mit `type: custom:emh-power-flow-card` hinzufügen.
+[![Open Marketplace custom repositories on My Home Assistant](https://my.home-assistant.io/badges/marketplace_repositories.svg)](https://my.home-assistant.io/redirect/marketplace_repositories)
 
-Die installierte Datei liegt bei HACS typischerweise unter `www/community/emh-power-flow-card/`. Der HACS-Ressourcenpfad ist üblicherweise `/hacsfiles/emh-power-flow-card/emh-power-flow-card.js`; neue Marketplace-Versionen können eine `/local/community/...`-Ressource mit Versionsparameter einrichten.
+Diese Card muss zunächst als **benutzerdefiniertes Repository** hinzugefügt werden. Sie ist dadurch **nicht automatisch im offiziellen Marketplace-Katalog gelistet**.
 
-**Keine zweite manuelle Ressource für dieselbe Card aktivieren**, wenn HACS oder Marketplace sie bereits automatisch registriert hat.
+1. Home Assistant öffnen und zu **Einstellungen → Marketplace → ⋮ → Add from link** wechseln.
+2. Die URL des **öffentlichen** GitHub-Repositories `https://github.com/DEIN-GITHUB-NAME/emh-power-flow-card` eingeben (durch deine tatsächliche URL ersetzen).
+3. Das Repository installieren, Dashboard neu laden und die Card über den Editor hinzufügen.
 
-### Manuell
+> Einen direkten Repository-Installationsbutton wie bei gelisteten Projekten kannst du ebenfalls einbinden. Er benötigt deinen tatsächlichen GitHub-Benutzernamen. Die fertige Vorlage dafür steht in [PUBLISHING.md](PUBLISHING.md).
 
-1. `emh-power-flow-card.js` nach `/config/www/` kopieren.
-2. In **Einstellungen → Dashboards → Ressourcen** eine JavaScript-Modul-Ressource anlegen:
+### HACS (ältere Home-Assistant-Versionen)
+
+HACS → **Benutzerdefinierte Repositories** → öffentliche GitHub-URL eingeben → Kategorie **Dashboard** → installieren. Die Ressource wird üblicherweise über `/hacsfiles/emh-power-flow-card/emh-power-flow-card.js` eingebunden.
+
+### Manuelle Installation
+
+1. `emh-power-flow-card.js` in das Home-Assistant-Verzeichnis `/config/www/` kopieren.
+2. Unter **Einstellungen → Dashboards → Ressourcen** diese **JavaScript-Modul**-Ressource anlegen:
 
    ```text
    /local/emh-power-flow-card.js?v=1.0.0
    ```
 
-3. Alte Ressourcen derselben Card entfernen, das Dashboard neu laden und bei Bedarf den App-Cache aktualisieren.
+3. Das Dashboard vollständig neu laden; bei Problemen mit der Companion-App den Frontend-Cache leeren.
 
-### Erste Card hinzufügen
+**Wichtig:** Nur **einen** Ressourcen-Eintrag für die Card aktivieren. Alte manuelle Einträge entfernen, wenn die Installation über HACS/Marketplace erfolgt.
+
+### Card verwenden
 
 ```yaml
 type: custom:emh-power-flow-card
 ```
 
-Der grafische Editor bietet anschließend alle Konfigurationsgruppen. Die Vorlage enthält Beispiel-Entitäten, die an die eigene Home-Assistant-Installation angepasst werden müssen.
+Die gewünschten Sensoren und Optionen können anschließend im **grafischen Konfigurationseditor** eingestellt werden. Die Card liefert Beispielsensoren, die du an deine eigenen Entitäten anpassen musst.
 
 ## Grundkonfiguration
 
@@ -242,7 +261,7 @@ Das Haus zeigt standardmäßig „Gesamtverbrauch“ bzw. einen Hinweis auf akti
 
 ## Individual-Kacheln (0 bis 6)
 
-Unterhalb des Energieflusses können bis zu sechs Kacheln dargestellt werden, auf Desktop und Mobil in **drei Spalten pro Reihe**. Die Reihenfolge ist im Editor änderbar. Typische Anwendungen: Wohnungszähler, Wallboxen, Heizstäbe, Warmwasser, Wärmepumpe, Server oder weitere Verbraucher.
+Unterhalb des Energieflusses können bis zu sechs Kacheln dargestellt werden, auf Desktop und Mobil in **drei Spalten pro Reihe**. **Mobil** erscheinen bei **1–3 eingeblendeten Kacheln** die Kacheln in der **unteren Rasterzeile (Plätze 4–6)**; die obere Reihe bleibt bewusst frei. Zusätzlich rückt die **Energieflussgrafik um eine halbe Individual-Kachelhöhe** nach unten, ohne die Position der Individual-Kacheln zu verändern. Ab **4 eingeblendeten Kacheln** werden wie bisher beide Reihen belegt. Ausgeblendete Kacheln (`show: false`) zählen dabei nicht. Auf dem Desktop bleiben alle Kacheln in der normalen Reihenfolge ohne leere erste Reihe. Die Reihenfolge ist im Editor änderbar. Typische Anwendungen: Wohnungszähler, Wallboxen, Heizstäbe, Warmwasser, Wärmepumpe, Server oder weitere Verbraucher.
 
 ```yaml
 individual:
@@ -351,19 +370,16 @@ Die Karte ersetzt keine Popup-Integration. Hash-Navigation hängt davon ab, wie 
 - Frontend: Die gesamte Card wird über eine einzige JavaScript-Datei ausgeliefert; keine zusätzlichen Laufzeitdateien erforderlich.
 - Die Standard-Entitätsnamen sind Beispiele. Sie müssen nicht identisch mit den verwendeten Entitäten anderer Anlagen sein.
 
-## GitHub-Veröffentlichung
+## Open Source, Lizenz und Unterstützung
 
-Für einen manuellen Repository-Upload die Dateien dieses Pakets **direkt in das Stammverzeichnis** des öffentlich sichtbaren GitHub-Repositories `emh-power-flow-card` hochladen. `emh-power-flow-card.js`, `hacs.json`, `README.md` und `.github/workflows/release.yml` dürfen nicht in einem zusätzlichen übergeordneten ZIP-Verzeichnis liegen. GitHub-Uploads im Browser übernehmen versteckte `.github`-Ordner unter Umständen nicht bequem; in diesem Fall die Workflow-Datei separat über GitHub **Add file → Create new file** mit dem Pfad `.github/workflows/release.yml` hinzufügen.
+Der Quellcode ist unter der **GNU General Public License, Version 3 (GPL-3.0-only)** veröffentlicht. Die Lizenzbedingungen stehen in [LICENSE](LICENSE). Weitergabe und Änderung sind im Rahmen dieser Lizenz erlaubt; für weitergegebene abgeleitete Werke gelten die GPL-Vorgaben.
 
-Danach einen Git-Tag `v1.0.0` anlegen und den Release-Workflow ausführen lassen. Der Workflow hängt die Datei `emh-power-flow-card.js` an einen GitHub-Release an. Ein veröffentlichtes GitHub-Release ist für nachvollziehbare Updates empfehlenswert. Anschließend das Repository als benutzerdefinierte Dashboard-Quelle in HACS / Marketplace eintragen. Die Aufnahme in den **allgemeinen öffentlichen Katalog** ist ein gesonderter Prüf- und Einreichungsprozess.
+EMH Power Flow Card kann kostenlos verwendet werden. Wenn dir die Entwicklung hilft, kannst du sie freiwillig unterstützen:
 
-**Lizenzhinweis:** In diesem Paket ist bewusst keine Lizenz eingeräumt. Vor der Veröffentlichung als Open-Source-Projekt bitte eine geeignete `LICENSE` ergänzen (z. B. MIT, wenn gewünscht). Ohne Lizenz gelten grundsätzlich die Rechte des Urhebers; öffentliche Sichtbarkeit auf GitHub ist keine Freigabe zur Weiterverwendung.
+[![Buy Me a Coffee](https://img.shields.io/badge/Buy_Me_a_Coffee-domhoe2023-FFDD00?logo=buymeacoffee&logoColor=black)](https://buymeacoffee.com/domhoe2023)
 
----
+Eine Spende ist **keine Voraussetzung** für die Verwendung. Der Spendenlink muss vor dem Veröffentlichen einem aktiven Profil zugeordnet sein.
+
+Die Installationsschritte für dein öffentliches Repository, den direkten Marketplace-Badge und den GitHub-Release-Workflow findest du in [PUBLISHING.md](PUBLISHING.md).
 
 **EMH – Effiziente Energielösungen** · Home Assistant · Photovoltaik · Energiemonitoring
-
-
-## Hinweise zur Konfigurationsoberfläche
-
-Im Editor heißen die Bereiche **Allgemeines**, **Animation – konstante Geschwindigkeit**, **Haupt-Kacheln**, **Ringe, Farben und Lastspitzenwarnung**, **Individual-Kacheln**, **Sichtbarkeit** und **Information / Hilfe (?)**. Das Feld **Hintergrund transparent** steuert die transparente Darstellung unabhängig vom Namen des HA-Themes. Die Hausverbrauchsberechnung erfolgt automatisch aus den Messwerten; in der Karte werden die Energieanteile von PV, Netz und Batterie dargestellt.

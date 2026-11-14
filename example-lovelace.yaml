@@ -1,5 +1,5 @@
-# EMH Power Flow Card v1.0.0 – Home Assistant
-# Ressource bei manueller Installation: /local/emh-power-flow-card.js?v=1.0.0
+# EMH Power Flow Card v1.0.2 – Home Assistant
+# Ressource bei manueller Installation: /local/emh-power-flow-card.js?v=1.0.2
 # Kartentyp unverändert: custom:emh-power-flow-card
 type: custom:emh-power-flow-card
 theme: auto

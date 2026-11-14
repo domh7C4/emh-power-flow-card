@@ -2,7 +2,8 @@
  * EMH Power Flow Card v1.0.0 – independently installable Home Assistant Lovelace card.
  * PV top / grid left / battery right / house center, 0..6 individual tiles below.
  * Native SVG paths; requestAnimationFrame energy particles with constant traversal time.
- * (c) 2026 EMH – Effiziente Energielösungen.
+ * SPDX-License-Identifier: GPL-3.0-only
+ * Copyright (C) 2026 EMH – Effiziente Energielösungen.
  */
 (() => {
   'use strict';
@@ -156,7 +157,11 @@
       <g class="particles"></g>
     </g>`).join('');
     const nodeHtml=['pv','grid','battery','home'].filter(k=>nodes[k].show!==false).map(id=>nodeSVG(id,nodes[id],L.s[id],mode==='mobile')).join('');
-    return `<svg class="energy-diagram ${mode}" viewBox="0 0 ${L.width} ${L.height}" xmlns="${SVG}" role="img" aria-label="EMH Energiefluss von PV, Netz und Batterie zum Haus">
+    // Mobile: remove unused SVG padding (original 0..430); preserve all circle
+    // positions and path geometry. Small safety margins: PV starts at y=66,
+    // house ends at y=393. The visible area is y=59..402.
+    const viewBox=mode==='mobile'?`0 59 ${L.width} 343`:`0 0 ${L.width} ${L.height}`;
+    return `<svg class="energy-diagram ${mode}" viewBox="${viewBox}" xmlns="${SVG}" role="img" aria-label="EMH Energiefluss von PV, Netz und Batterie zum Haus">
       <g class="lines">${paths}</g><g class="nodes">${nodeHtml}</g>
     </svg>`;
   }
@@ -188,7 +193,27 @@
     .help-panel .help-description{white-space:pre-wrap;overflow-wrap:anywhere}
     .help-panel{position:absolute;z-index:20;right:13px;top:47px;width:min(350px,calc(100% - 26px));max-height:min(430px,75vh);overflow-y:auto;background:var(--emh-panel);border:1px solid var(--emh-border);box-shadow:0 14px 32px rgba(0,0,0,.33);border-radius:14px;padding:17px 16px;color:var(--emh-text);font-size:12px;line-height:1.55}.help-panel[hidden]{display:none}.help-title{display:flex;align-items:center;justify-content:space-between;gap:7px;margin:0 0 7px;font-size:15px;font-weight:750}.help-panel p{margin:7px 0}.help-panel ul{padding-left:20px;margin:8px 0}.help-close{border:1px solid var(--emh-border);background:transparent;border-radius:8px;padding:3px 8px;color:inherit;cursor:pointer;font-size:17px}.foot{border-top:1px solid var(--emh-border);margin:0 18px;padding:10px 0 13px;display:flex;gap:8px;justify-content:space-between;flex-wrap:wrap;color:var(--emh-muted);font-size:10.5px}.foot strong{color:var(--emh-text)}
     .flow-atom{pointer-events:none}.flow-atom .atom-inner{fill:var(--route-color);stroke:none}.flow-atom .atom-glow{fill:var(--route-color);opacity:.25;filter:blur(3px)}
-    @media(max-width:750px){.head{padding:12px 11px 0}.heading h3{font-size:15px}.heading p{font-size:8px}.emh-mark{height:32px;width:32px;font-size:12px}.status{font-size:10px;padding:5px 9px}.diagram-wrap{padding:0 2px}.energy-diagram.desktop{display:none}.energy-diagram.mobile{display:block}.mobile .core-label{font-size:17px}.mobile .battery-soc-label{font-size:18px}.mobile .core-value{font-size:21px}.mobile .core-sub{font-size:12px}.mobile .core-house .core-value{font-size:25px}.individuals{grid-template-columns:repeat(3,minmax(0,1fr));gap:6px;padding:0 7px 8px}.device{border-radius:10px;padding:6px 3px 6px}.device-icon{height:18px}.device-icon svg{height:18px;width:18px}.device-icon ha-icon{--mdc-icon-size:18px}.device-name{font-size:9.5px;margin-top:3px;max-width:100%}.device-value{font-size:18px;margin-top:3px;letter-spacing:-.3px}.device-secondary{font-size:8.5px;margin-top:2px}.foot{margin:0 10px;padding:7px 0 10px;font-size:9px}}
+    /* Desktop: Reserve enough vertical room for icon, name, value AND state line.
+       A flex column keeps secondary labels and their badges inside the tile. */
+    @media(min-width:751px){.device{display:flex;flex-direction:column;align-items:center;min-height:116px;padding-bottom:13px}.device-secondary{display:block;flex-shrink:0;line-height:1.4;margin-top:5px}}
+    /* Mobile: move the whole SVG and following tiles exactly 30px downward. */
+    @media(max-width:750px){ha-card{display:block}.head{padding:12px 11px 0}.heading h3{font-size:15px}.heading p{font-size:8px}.emh-mark{height:32px;width:32px;font-size:12px}.status{font-size:10px;padding:5px 9px}.diagram-wrap{padding:30px 2px 0}.energy-diagram.desktop{display:none}.energy-diagram.mobile{display:block}.mobile .core-label{font-size:17px}.mobile .battery-soc-label{font-size:18px}.mobile .core-value{font-size:21px}.mobile .core-sub{font-size:12px}.mobile .core-house .core-value{font-size:25px}.individuals{grid-template-columns:repeat(3,minmax(0,1fr));gap:6px;padding:0 7px 8px}.device{border-radius:10px;padding:6px 3px 6px}.device-icon{height:18px}.device-icon svg{height:18px;width:18px}.device-icon ha-icon{--mdc-icon-size:18px}.device-name{font-size:9.5px;margin-top:3px;max-width:100%}.device-value{font-size:18px;margin-top:3px;letter-spacing:-.3px}.device-secondary{font-size:8.5px;margin-top:2px}.foot{margin:0 10px;padding:7px 0 10px;font-size:9px}}
+    /* Mobile: With 1–3 visible individual tiles, place them in grid row 2,
+       exactly where items 4–6 would be when both rows are present.
+       A pseudo grid item occupies row 1; equally sized auto rows keep the
+       offset matched to actual tile height, including status badges.
+       On desktop the placeholders and row assignments do not exist. */
+    @media(max-width:750px){
+      .individuals[data-mobile-bottom-row="true"]{grid-auto-rows:1fr}
+      .individuals[data-mobile-bottom-row="true"]::before{content:"";display:block;grid-column:1 / -1;grid-row:1;pointer-events:none}
+      .individuals[data-mobile-bottom-row="true"]>.device{grid-row:2}
+      /* Bei nur 1–3 sichtbaren Individual-Kacheln wird ausschließlich die
+         Flussgrafik um eine halbe tatsächlich gerenderte Kachelhöhe abgesenkt.
+         Die unteren Individual-Kacheln bleiben an derselben Position. */
+      ha-card[data-mobile-flow-lower="true"] .energy-diagram.mobile{
+        transform:translateY(var(--emh-mobile-flow-shift,0px));
+      }
+    }
     @media(max-width:370px){.mobile .core-value{font-size:18px}.device-value{font-size:16px}}
     @media(max-width:750px){ha-card[data-mobile-save="true"] .energy-diagram.mobile .atom-glow{display:none}ha-card[data-mobile-save="true"] .energy-diagram.mobile .flow-atom{filter:none!important}ha-card[data-mobile-save="true"] .energy-diagram.mobile .home-ring-segment,ha-card[data-mobile-save="true"] .energy-diagram.mobile .progress-ring{filter:none!important}}
     @media(prefers-reduced-motion:reduce){.progress-ring,.home-ring-segment,.line-active{transition:none}}
@@ -228,7 +253,7 @@
     }
     set hass(hass){this._hass=hass;if(this.isConnected){if(!this._rendered)this._render();this._update();this._start();}}
     connectedCallback(){if(!this._rendered)this._render();this._update();this._start();document.addEventListener('visibilitychange',this._visibility);if('IntersectionObserver' in window){this._observer?.disconnect();this._observer=new IntersectionObserver(entries=>{this._inView=entries[0]?.isIntersecting!==false;this._lastFrame=0;this._lastPaint=0;if(this._inView)this._start();else this._stop();},{threshold:0});this._observer.observe(this);}}
-    disconnectedCallback(){this._stop();this._observer?.disconnect();document.removeEventListener('visibilitychange',this._visibility);}
+    disconnectedCallback(){this._stop();this._observer?.disconnect();this._tileResizeObserver?.disconnect();document.removeEventListener('visibilitychange',this._visibility);}
     _toggleHelp(force){
       const panel=this.shadowRoot.querySelector('.help-panel');
       const toggle=this.shadowRoot.querySelector('[data-help-toggle]');
@@ -243,15 +268,39 @@
       const cfg=this._config,dis=cfg.display||{};
       const individuals=this._individual.filter(i=>i.show!==false);
       const count=individuals.length;
+      // Beim Umschalten der Individual-Anzahl alte Beobachtung entfernen.
+      this._tileResizeObserver?.disconnect();
+      this._tileResizeObserver=null;
       const theme=cfg.theme||'auto';
       this.shadowRoot.innerHTML=`<style>${STYLE}</style><ha-card data-theme="${theme==='light'?'light':'dark'}" data-transparent="${cfg.appearance?.transparent_background!==false}">
         ${(dis.live!==false||dis.info_button!==false)?`<div class="head-actions floating">${dis.live===false?'':`<div class="status"><i></i><span data-status>LIVE</span></div>`}${dis.info_button===false?'':`<button type="button" class="help-button" data-help-toggle aria-label="Informationen zur EMH Power Flow Card" aria-controls="emh-help-panel" aria-expanded="false">?</button>`}</div>`:''}
         ${dis.info_button===false?'':`<section class="help-panel" id="emh-help-panel" role="dialog" aria-label="Hilfe zur EMH Power Flow Card" hidden><div class="help-title"><span>${esc(cfg.info?.title||'EMH Energiefluss – Erklärung')}</span><button class="help-close" type="button" data-help-close aria-label="Hilfe schließen">×</button></div><p class="help-description">${esc(cfg.info?.description||'Diese Karte zeigt die aktuellen Leistungsflüsse zwischen Photovoltaik, Netz, Batteriespeicher und Haus.')}</p>${cfg.info?.show_default_guide===false?'':`<ul><li><strong>PV (Gelb):</strong> Leistungserzeugung; der Füllring bezieht sich auf das eingestellte 100-%-Maximum.</li><li><strong>Netz (Blau):</strong> Bezug oder Einspeisung; der Ring wird an der konfigurierten Warnschwelle rot.</li><li><strong>Batterie (konfigurierte Ringfarbe):</strong> SOC-Ring oder richtungsabhängiger Leistungsring (Laden / Entladen).</li><li><strong>Haus:</strong> PV + Netzbezug + Batterieentladung − Netzeinspeisung − Batterieladung − ausgewählte Individual-Verbraucher. Gelb/Blau/Grün sind geschätzte Herkunftsanteile.</li><li><strong>Animation:</strong> Lichtpunkte, Kometen, Impulse oder Striche laufen mit konstanter eingestellter Geschwindigkeit und stoppen unter der Nulltoleranz.</li><li><strong>Individual:</strong> Bis zu sechs Verbraucher/Erzeuger in drei Spalten mit frei wählbarer Zusatzzeile.</li></ul><p>Die Hausring-Anteile sind ohne direkte Herkunftsmessung eine Näherung. Nulltoleranzwerte betreffen nur die Anzeige; die Hausbilanz verwendet Rohmessungen. Individual-Abzüge nicht doppelt zählen. Die Netz-Warnung begrenzt keine Leistung.</p>`}</section>`}
         <div class="diagram-wrap">${svgMarkup('desktop',this._nodes)}${svgMarkup('mobile',this._nodes)}</div>
-        ${count?`<div class="individuals">${individuals.map(individualCard).join('')}</div>`:''}
+        ${count?`<div class="individuals" data-mobile-bottom-row="${count<=3}">${individuals.map(individualCard).join('')}</div>`:''}
         ${dis.footer===false?'':`<footer class="foot">${dis.energy_split===false?'':`<span data-energy-split>PV – · Netz – · Speicher –</span>`}${dis.fossil===false?'':`<span data-fossil></span>`}</footer>`}
       </ha-card>`;
       const card=this.shadowRoot.querySelector('ha-card');
+      card.dataset.mobileFlowLower=String(count>=1&&count<=3);
+      if(count>=1&&count<=3){
+        const tile=this.shadowRoot.querySelector('.individuals .device');
+        if(tile){
+          const setOffset=()=>{
+            // Die durch das Raster tatsächlich berechnete Kachelhöhe verwenden,
+            // statt einen festen Pixelwert zu schätzen. Keine Layout-Veränderung:
+            // SVG wird lediglich visuell verschoben.
+            const h=tile.getBoundingClientRect().height;
+            if(Number.isFinite(h)&&h>0){
+              const offset=Math.round(h*50)/100;
+              card.style.setProperty('--emh-mobile-flow-shift',offset+'px');
+            }
+          };
+          setOffset();
+          if(typeof ResizeObserver!=='undefined'){
+            this._tileResizeObserver=new ResizeObserver(setOffset);
+            this._tileResizeObserver.observe(tile);
+          }
+        }
+      }
       const ringRatio=clamp(n(cfg.appearance?.ring_width_percent,50),20,150)/100;
       card.style.setProperty('--emh-ring-track-width',String(5.6*ringRatio));
       card.style.setProperty('--emh-ring-progress-width',String(6.3*ringRatio));
