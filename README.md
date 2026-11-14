@@ -3,7 +3,8 @@
 [![Version](https://img.shields.io/badge/Version-1.0.0-00b7c8)](./CHANGELOG.md)
 [![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](LICENSE)
 [![Home Assistant](https://img.shields.io/badge/Home_Assistant-Lovelace-41BDF5?logo=homeassistant&logoColor=white)](https://www.home-assistant.io/)
-[![Buy Me a Coffee](https://img.shields.io/badge/Buy_Me_a_Coffee-domhoe2023-FFDD00?logo=buymeacoffee&logoColor=black)](https://buymeacoffee.com/domhoe2023)
+[![PayPal.Me](https://img.shields.io/badge/PayPal.Me-domh7C4-00457C?logo=paypal&logoColor=white)](https://paypal.me/domh7C4)
+
 
 **Visualisierung des Energieflusses in Home Assistant – für Photovoltaik, Stromnetz, Batteriespeicher, Haus und bis zu sechs individuelle Verbraucher.**
 
