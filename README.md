@@ -16,7 +16,7 @@ Die EMH Power Flow Card ist eine eigenständige Lovelace-Custom-Card. Sie stellt
 <details>
 <summary>Mobilansicht mit 4 bis 6 Individual-Kacheln</summary>
 
-![EMH Power Flow Card – Mobil mit 4 Individual-Kacheln (zwei Rasterzeilen)](assets/mobile-4.png)
+#![EMH Power Flow Card – Mobil mit 4 Individual-Kacheln (zwei Rasterzeilen)](assets/mobile-4.png)
 
 </details>
 
