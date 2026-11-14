@@ -372,7 +372,7 @@ Der Quellcode ist unter der **GNU General Public License, Version 3 (GPL-3.0-onl
 
 EMH Power Flow Card kann kostenlos verwendet werden. Wenn dir die Entwicklung hilft, kannst du sie freiwillig unterstützen:
 
-[![Buy Me a Coffee](https://img.shields.io/badge/Buy_Me_a_Coffee-domhoe2023-FFDD00?logo=buymeacoffee&logoColor=black)](https://buymeacoffee.com/domhoe2023)
+[![PayPal.Me](https://img.shields.io/badge/PayPal.Me-domh7C4-00457C?logo=paypal&logoColor=white)](https://paypal.me/domh7C4)
 
 Eine Spende ist **keine Voraussetzung** für die Verwendung. Der Spendenlink muss vor dem Veröffentlichen einem aktiven Profil zugeordnet sein.
 
