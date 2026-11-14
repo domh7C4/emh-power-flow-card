@@ -9,14 +9,11 @@
 
 Die EMH Power Flow Card ist eine eigenständige Lovelace-Custom-Card. Sie stellt die aktuellen Leistungsflüsse übersichtlich dar, berechnet den Hausverbrauch aus Messwerten und zeigt die geschätzte Herkunft des verbrauchten Stroms. Die Karte besitzt einen grafischen Home-Assistant-Konfigurationseditor und ist für Desktop und Mobilgeräte ausgelegt.
 
+## Dektopversion
 ![EMH Power Flow Card – Desktop](assets/desktop.png)
 
+## Mobilversion
 ![EMH Power Flow Card – Mobil mit 3 Individual-Kacheln (untere Rasterzeile)](assets/mobile.png)
-
-<details>
-<summary>Mobilansicht mit 4 bis 6 Individual-Kacheln</summary>
-
-</details>
 
 
 
