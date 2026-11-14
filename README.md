@@ -7,7 +7,7 @@
 
 **Visualisierung des Energieflusses in Home Assistant – für Photovoltaik, Stromnetz, Batteriespeicher, Haus und bis zu sechs individuelle Verbraucher.**
 
-Die EMH Power Flow Card ist eine eigenständige Lovelace-Custom-Card von **EMH – Effiziente Energielösungen**. Sie stellt die aktuellen Leistungsflüsse übersichtlich dar, berechnet den Hausverbrauch aus Messwerten und zeigt die geschätzte Herkunft des verbrauchten Stroms. Die Karte besitzt einen grafischen Home-Assistant-Konfigurationseditor und ist für Desktop und Mobilgeräte ausgelegt.
+Die EMH Power Flow Card ist eine eigenständige Lovelace-Custom-Card. Sie stellt die aktuellen Leistungsflüsse übersichtlich dar, berechnet den Hausverbrauch aus Messwerten und zeigt die geschätzte Herkunft des verbrauchten Stroms. Die Karte besitzt einen grafischen Home-Assistant-Konfigurationseditor und ist für Desktop und Mobilgeräte ausgelegt.
 
 ![EMH Power Flow Card – Desktop](assets/desktop.png)
 
@@ -382,4 +382,4 @@ Eine Spende ist **keine Voraussetzung** für die Verwendung. Der Spendenlink mus
 
 Die Installationsschritte für dein öffentliches Repository, den direkten Marketplace-Badge und den GitHub-Release-Workflow findest du in [PUBLISHING.md](PUBLISHING.md).
 
-**EMH – Effiziente Energielösungen** · Home Assistant · Photovoltaik · Energiemonitoring
+**EMH** · Home Assistant · Photovoltaik · Energiemonitoring
