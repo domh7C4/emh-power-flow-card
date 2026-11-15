@@ -1,4 +1,4 @@
-# Installation – EMH Power Flow Card v1.0.0
+# Installation – EMH Power Flow Card v1.0.1
 
 ## Über Marketplace (Home Assistant 2026.11+)
 
@@ -17,13 +17,13 @@ HACS → Benutzerdefinierte Repositories → GitHub-Repository-URL → **Dashboa
 
 - `emh-power-flow-card.js` nach `/config/www/` kopieren.
 - Unter **Einstellungen → Dashboards → Ressourcen** als **JavaScript-Modul** eintragen:
-  `/local/emh-power-flow-card.js?v=1.0.0`
+  `/local/emh-power-flow-card.js?v=1.0.1`
 - Dashboard neu laden. Alle alten EMH Power Flow-Ressourcen entfernen.
 
 ## Kontrolle
 
 ```javascript
-window.EMHPowerFlowVersion // '1.0.0'
+window.EMHPowerFlowVersion // '1.0.1'
 customElements.get('emh-power-flow-card') // registrierte Custom-Element-Klasse
 ```
 

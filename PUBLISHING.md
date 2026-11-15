@@ -24,14 +24,14 @@ Die README enthält zunächst einen funktionierenden Badge zu **Marketplace → 
 
 Für ältere HACS-Versionen kann auch die ältere Weiterleitung `hacs_repository` genutzt werden. Die Kategorie für Custom Dashboard-Cards lautet `plugin` (HACS-Oberfläche: Dashboard).
 
-## 4. Version 1.0.0 veröffentlichen
+## 4. Version 1.0.1 veröffentlichen
 
-1. Git-Tag `v1.0.0` auf dem aktuellen `main`-Stand erstellen und pushen. Im GitHub-Webinterface unter **Releases → Draft a new release → Choose a tag → Create new tag** möglich.
+1. Git-Tag `v1.0.1` auf dem aktuellen `main`-Stand erstellen und pushen. Im GitHub-Webinterface unter **Releases → Draft a new release → Choose a tag → Create new tag** möglich.
 2. Der Workflow `.github/workflows/release.yml` erstellt einen GitHub Release und hängt `emh-power-flow-card.js` als Download an.
 3. Im Reiter **Actions** kontrollieren, ob `Validate` und `Release` erfolgreich sind.
 4. Danach die Repository-URL in Marketplace **Add from link** bzw. HACS **Custom repositories** installieren.
 
-**Hinweis:** Ein öffentliches Repository ist für normale Installationen über HACS/Marketplace notwendig. Die Aufnahme in den offiziellen Standardkatalog erfordert zusätzliche Freigabe/Einreichung. Das `v1.0.0`-Tag **nicht** auf ältere JS-Fassungen setzen.
+**Hinweis:** Ein öffentliches Repository ist für normale Installationen über HACS/Marketplace notwendig. Die Aufnahme in den offiziellen Standardkatalog erfordert zusätzliche Freigabe/Einreichung. Das `v1.0.1`-Tag **nicht** auf ältere JS-Fassungen setzen.
 
 ## 5. Lizenz
 

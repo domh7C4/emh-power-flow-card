@@ -1,5 +1,5 @@
 /**
- * EMH Power Flow Card v1.0.0 – independently installable Home Assistant Lovelace card.
+ * EMH Power Flow Card v1.0.1 – independently installable Home Assistant Lovelace card.
  * PV top / grid left / battery right / house center, 0..6 individual tiles below.
  * Native SVG paths; requestAnimationFrame energy particles with constant traversal time.
  * SPDX-License-Identifier: GPL-3.0-only
@@ -7,36 +7,33 @@
  */
 (() => {
   'use strict';
-  const VERSION = '1.0.0';
+  const VERSION = '1.0.1';
   const CARD = 'emh-power-flow-card';
   const EDITOR = 'emh-power-flow-card-editor';
-  console.info('[EMH] Power Flow v1.0.0 script start');
+  console.info('[EMH] Power Flow v1.0.1 script start');
   if (customElements.get(CARD)) { console.warn('[EMH] Power Flow already registered; unload older resources.'); return; }
   const SVG = 'http://www.w3.org/2000/svg';
   const T = { pv:'#f5b916', grid:'#36a5f5', battery:'#50d584', home:'#18cef2', individual:'#acbac7', warning:'#f04b54' };
   const ENTITY_DEFAULTS = {
-    pv:'sensor.pv_power',
-    grid_mode:'separate', grid_import:'sensor.grid_import', grid_export:'sensor.grid_export',
+    pv:'',
+    grid_mode:'separate', grid_import:'', grid_export:'',
     grid_power:'', grid_invert_sign:false,
-    battery_mode:'separate', battery_charge:'sensor.battery_chargepower', battery_discharge:'sensor.battery_dischargepower',
+    battery_mode:'separate', battery_charge:'', battery_discharge:'',
     battery_power:'', battery_invert_sign:false,
-    battery_soc:'sensor.battery_soc', home:null,
-    fossil:'sensor.electricity_maps_anteil_fossiler_energietrager'
+    battery_soc:'', home:'',
+    fossil:''
   };
   const NODES_DEFAULT = {
-    pv:{name:'Photovoltaik',zero_tolerance_w:10,icon:'mdi:solar-power',popup:'#pop-up-pv',ring_entity:'sensor.pv_power',ring_max_mode:'fixed',ring_max:25000,ring_max_entity:'',ring_unit:'W',color:T.pv},
-    grid:{name:'Netz',zero_tolerance_w:10,icon:'mdi:transmission-tower',popup:'#pop-up-grid',ring_entity:'sensor.grid_import',ring_max_mode:'fixed',ring_max:5000,ring_max_entity:'',ring_unit:'W',alert_entity:'sensor.grid_import',alert_threshold_mode:'fixed',alert_threshold_w:5000,alert_threshold_entity:'',alert_threshold_unit:'W',alert_from_percent:90,alert_color:T.warning,color:T.grid},
+    pv:{name:'Photovoltaik',zero_tolerance_w:10,icon:'mdi:solar-power',popup:'#pop-up-pv',ring_entity:'',ring_max_mode:'fixed',ring_max:25000,ring_max_entity:'',ring_unit:'W',color:T.pv},
+    grid:{name:'Netz',zero_tolerance_w:10,icon:'mdi:transmission-tower',popup:'#pop-up-grid',ring_entity:'',ring_max_mode:'fixed',ring_max:5000,ring_max_entity:'',ring_unit:'W',alert_entity:'',alert_threshold_mode:'fixed',alert_threshold_w:5000,alert_threshold_entity:'',alert_threshold_unit:'W',alert_from_percent:90,alert_color:T.warning,color:T.grid},
     battery:{name:'Batterie',zero_tolerance_w:10,icon:'mdi:battery',icon_style:'horizontal',popup:'#pop-up-bat',
-      ring_source:'soc',use_soc_colors:true,ring_entity:'sensor.battery_soc',ring_max_mode:'fixed',ring_max:100,ring_max_entity:'',ring_unit:'%',
+      ring_source:'soc',use_soc_colors:true,ring_entity:'',ring_max_mode:'fixed',ring_max:100,ring_max_entity:'',ring_unit:'%',
       power_ring_max_mode:'fixed',power_ring_max:5000,power_ring_unit:'W',power_ring_max_entity:'',power_ring_max_entity_unit:'W',
       charge_ring_color:'#17c8de',discharge_ring_color:T.battery,color:T.battery},
     home:{name:'Haus',zero_tolerance_w:10,icon:'mdi:home',popup:'/energy',color:T.home}
   };
-  const IND_DEFAULT = [
-    {id:'og',name:'Obergeschoss',entity:'sensor.sm2_power_total_raw',icon:'mdi:home-floor-2',popup:'#pop-up-og',secondary_mode:'text',secondary_text:'Verbrauch',secondary_show_above_enabled:false,secondary_threshold_w:500,highlight_active_enabled:false,highlight_active_color:'#50d584',include_in_home:true,deduct_from_home:false,zero_tolerance_w:10},
-    {id:'ug',name:'Untergeschoss',entity:'sensor.sm1_power_no_wb',icon:'mdi:home-floor-1',popup:'#pop-up-ug',secondary_mode:'text',secondary_text:'Verbrauch',secondary_show_above_enabled:false,secondary_threshold_w:500,highlight_active_enabled:false,highlight_active_color:'#50d584',include_in_home:true,deduct_from_home:false,zero_tolerance_w:10},
-    {id:'wallbox',name:'Wallbox',entity:'sensor.ev_charge_1_wb_chargepower',icon:'mdi:ev-station',popup:'#pop-up-wallbox',secondary_mode:'entity',secondary_entity:'sensor.ev_charge_1_carsoc',secondary_label:'Fahrzeug',secondary_unit:'%',secondary_show_above_enabled:false,secondary_threshold_w:500,highlight_active_enabled:false,highlight_active_color:'#50d584',include_in_home:true,deduct_from_home:false,zero_tolerance_w:10}
-  ];
+  // Ohne Konfiguration wird kein Verbraucher und keine Messentität vorbelegt.
+  const IND_DEFAULT = [];
   const ICONS = {
     'solar-power':'<circle cx="14" cy="10" r="5"/><path d="M14 1v3M14 17v3M5 10h3M20 10h3M7 3l2 2M19 15l2 2M21 3l-2 2M9 15l-2 2M3 26h22M7 22h14M12 17l-3 9M16 17l3 9"/>',
     'transmission-tower':'<path d="M10 2h8M9 9h10M6 16h16M14 2l-10 24M14 2l10 24M7 26h14M9 9l10 7M19 9L9 16"/>',
@@ -90,6 +87,12 @@
   }
   const color=(v,f)=>typeof v==='string'&&/^#[0-9a-f]{6}$/i.test(v)?v:f;
   const str=v=>typeof v==='string'?v:'';
+  // Nur tatsächlich ausgewählte Entitäts-IDs aktivieren einen Energiezweig.
+  // Leere Editor-Platzhalter wie 'sensor.' sind keine gültigen Zuweisungen.
+  const hasEntity=ref=>{
+    const id=typeof ref==='string'?ref:ref&&typeof ref==='object'?ref.entity:'';
+    return typeof id==='string' && /^[a-z0-9_]+\.[a-z0-9_]+$/i.test(id.trim());
+  };
   const icon=(key)=>{
     const k=str(key).replace(/^mdi:/,'');
     return ICONS[k] ? `<g fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round">${ICONS[k]}</g>` :
@@ -148,15 +151,15 @@
       <text class="core-sub" data-sub="${id}" x="${x}" y="${subY}" text-anchor="middle">–</text>
     </g>`;
   }
-  function svgMarkup(mode,nodes){
+  function svgMarkup(mode,nodes,active){
     const L=coreLayout(mode);
-    const paths=['pv','grid','battery'].filter(id=>nodes[id].show!==false).map(id=>`<g class="flow-route" data-route="${id}">
+    const paths=['pv','grid','battery'].filter(id=>active.home&&active[id]).map(id=>`<g class="flow-route" data-route="${id}">
       <path class="line-track" d="${L.routes[id]}"/>
       <path class="line-active" d="${L.routes[id]}"/>
       <path class="line-dashes" d="${L.routes[id]}"/>
       <g class="particles"></g>
     </g>`).join('');
-    const nodeHtml=['pv','grid','battery','home'].filter(k=>nodes[k].show!==false).map(id=>nodeSVG(id,nodes[id],L.s[id],mode==='mobile')).join('');
+    const nodeHtml=['pv','grid','battery','home'].filter(k=>active[k]).map(id=>nodeSVG(id,nodes[id],L.s[id],mode==='mobile')).join('');
     // Mobile: remove unused SVG padding (original 0..430); preserve all circle
     // positions and path geometry. Small safety margins: PV starts at y=66,
     // house ends at y=393. The visible area is y=59..402.
@@ -231,7 +234,7 @@
   class EmhPowerFlowCard extends HTMLElement {
     constructor(){
       super();this.attachShadow({mode:'open'});this._config={};this._hass=null;this._nodes=clone(NODES_DEFAULT);
-      this._entities={...ENTITY_DEFAULTS};this._individual=normalizeIndividuals();this._rendered=false;
+      this._entities={...ENTITY_DEFAULTS};this._active=this._getActiveNodes();this._individual=normalizeIndividuals();this._rendered=false;
       this._raf=0;this._lastFrame=0;this._lastPaint=0;this._routes=[];this._motion=true;this._inView=true;
       this._mobileMedia=window.matchMedia('(max-width:750px)');
       this._reduceMotion=window.matchMedia('(prefers-reduced-motion: reduce)');
@@ -243,10 +246,22 @@
     }
     static getStubConfig(){return {type:`custom:${CARD}`,theme:'auto',entities:clone(ENTITY_DEFAULTS),individual:clone(IND_DEFAULT),animation:{style:'dots',speed:1,glow:65,max_drops:3,mobile_power_save:true,mobile_fps:25,mobile_max_particles:2},appearance:{ring_width_percent:50,transparent_background:true},display:{header:false,live:true,info_button:true,footer:true,energy_split:true,fossil:true}};}
     static getConfigElement(){return document.createElement(EDITOR);}
+    _getActiveNodes(){
+      const e=this._entities;
+      // Alle zum Zweig gehörenden Haupt-Entitäten zählen, auch SOC und
+      // optionale direkte Herkunftssensoren. Reine Ring-/Warn-Einstellungen
+      // ohne Haupt-Entität aktivieren keinen Zweig.
+      const any=(...keys)=>keys.some(key=>hasEntity(e[key]));
+      const pv=any('pv','pv_to_home');
+      const grid=any('grid_import','grid_export','grid_power','grid_to_home');
+      const battery=any('battery_charge','battery_discharge','battery_power','battery_soc','battery_to_home');
+      return {pv,grid,battery,home:any('home')||pv||grid||battery};
+    }
     setConfig(cfg){
       if(!cfg||typeof cfg!=='object')throw new Error('EMH Power Flow: Konfiguration fehlt.');
       this._config=clone(cfg);
       this._entities={...ENTITY_DEFAULTS,...(cfg.entities||{})};
+      this._active=this._getActiveNodes();
       this._nodes={};for(const key of Object.keys(NODES_DEFAULT))this._nodes[key]={...NODES_DEFAULT[key],...(cfg.nodes?.[key]||{})};
       this._individual=normalizeIndividuals(cfg.individual);
       this._stop();this._render();this._update();this._start();
@@ -275,7 +290,7 @@
       this.shadowRoot.innerHTML=`<style>${STYLE}</style><ha-card data-theme="${theme==='light'?'light':'dark'}" data-transparent="${cfg.appearance?.transparent_background!==false}">
         ${(dis.live!==false||dis.info_button!==false)?`<div class="head-actions floating">${dis.live===false?'':`<div class="status"><i></i><span data-status>LIVE</span></div>`}${dis.info_button===false?'':`<button type="button" class="help-button" data-help-toggle aria-label="Informationen zur EMH Power Flow Card" aria-controls="emh-help-panel" aria-expanded="false">?</button>`}</div>`:''}
         ${dis.info_button===false?'':`<section class="help-panel" id="emh-help-panel" role="dialog" aria-label="Hilfe zur EMH Power Flow Card" hidden><div class="help-title"><span>${esc(cfg.info?.title||'EMH Energiefluss – Erklärung')}</span><button class="help-close" type="button" data-help-close aria-label="Hilfe schließen">×</button></div><p class="help-description">${esc(cfg.info?.description||'Diese Karte zeigt die aktuellen Leistungsflüsse zwischen Photovoltaik, Netz, Batteriespeicher und Haus.')}</p>${cfg.info?.show_default_guide===false?'':`<ul><li><strong>PV (Gelb):</strong> Leistungserzeugung; der Füllring bezieht sich auf das eingestellte 100-%-Maximum.</li><li><strong>Netz (Blau):</strong> Bezug oder Einspeisung; der Ring wird an der konfigurierten Warnschwelle rot.</li><li><strong>Batterie (konfigurierte Ringfarbe):</strong> SOC-Ring oder richtungsabhängiger Leistungsring (Laden / Entladen).</li><li><strong>Haus:</strong> PV + Netzbezug + Batterieentladung − Netzeinspeisung − Batterieladung − ausgewählte Individual-Verbraucher. Gelb/Blau/Grün sind geschätzte Herkunftsanteile.</li><li><strong>Animation:</strong> Lichtpunkte, Kometen, Impulse oder Striche laufen mit konstanter eingestellter Geschwindigkeit und stoppen unter der Nulltoleranz.</li><li><strong>Individual:</strong> Bis zu sechs Verbraucher/Erzeuger in drei Spalten mit frei wählbarer Zusatzzeile.</li></ul><p>Die Hausring-Anteile sind ohne direkte Herkunftsmessung eine Näherung. Nulltoleranzwerte betreffen nur die Anzeige; die Hausbilanz verwendet Rohmessungen. Individual-Abzüge nicht doppelt zählen. Die Netz-Warnung begrenzt keine Leistung.</p>`}</section>`}
-        <div class="diagram-wrap">${svgMarkup('desktop',this._nodes)}${svgMarkup('mobile',this._nodes)}</div>
+        ${this._active.home?`<div class="diagram-wrap">${svgMarkup('desktop',this._nodes,this._active)}${svgMarkup('mobile',this._nodes,this._active)}</div>`:''}
         ${count?`<div class="individuals" data-mobile-bottom-row="${count<=3}">${individuals.map(individualCard).join('')}</div>`:''}
         ${dis.footer===false?'':`<footer class="foot">${dis.energy_split===false?'':`<span data-energy-split>PV – · Netz – · Speicher –</span>`}${dis.fossil===false?'':`<span data-fossil></span>`}</footer>`}
       </ha-card>`;
@@ -457,19 +472,22 @@
       const dark=theme==='dark'||(theme==='auto'&&(this._hass.themes?.darkMode??window.matchMedia('(prefers-color-scheme: dark)').matches));
       this.shadowRoot.querySelector('ha-card').dataset.theme=dark?'dark':'light';
       const powerKeys=new Set(['pv','grid_import','grid_export','battery_charge','battery_discharge','home']);
-      const raw={};for(const id of Object.keys(ENTITY_DEFAULTS))raw[id]=powerKeys.has(id)?this._readPower(this._configuredPowerRef(id)):this._read(this._entities[id]);
+      const raw={};for(const id of Object.keys(ENTITY_DEFAULTS))raw[id]=hasEntity(this._entities[id])?(powerKeys.has(id)?this._readPower(this._configuredPowerRef(id)):this._read(this._entities[id])):null;
       const p=x=>raw[x]===null?null:Math.max(0,raw[x]);
-      const pv=p('pv'),soc=p('battery_soc');
+      const pv=hasEntity(this._entities.pv)?p('pv'):0;
+      const soc=hasEntity(this._entities.battery_soc)?p('battery_soc'):null;
       // Signed power convention: grid + = Import, - = Export; battery + = Entladen, - = Laden.
       // Vorzeichen kann bei abweichenden Wechselrichtern invertiert werden.
-      const signedGrid=this._readPower(this._configuredPowerRef('grid_power'));
-      const signedBattery=this._readPower(this._configuredPowerRef('battery_power'));
+      const gridSigned=this._entities.grid_mode==='signed' && hasEntity(this._entities.grid_power);
+      const batterySigned=this._entities.battery_mode==='signed' && hasEntity(this._entities.battery_power);
+      const signedGrid=gridSigned?this._readPower(this._configuredPowerRef('grid_power')):null;
+      const signedBattery=batterySigned?this._readPower(this._configuredPowerRef('battery_power')):null;
       const signedGridW=signedGrid===null?null:signedGrid*(this._entities.grid_invert_sign===true?-1:1);
       const signedBatteryW=signedBattery===null?null:signedBattery*(this._entities.battery_invert_sign===true?-1:1);
-      const imp=this._entities.grid_mode==='signed'?(signedGridW===null?null:Math.max(0,signedGridW)):p('grid_import');
-      const exp=this._entities.grid_mode==='signed'?(signedGridW===null?null:Math.max(0,-signedGridW)):p('grid_export');
-      const bc=this._entities.battery_mode==='signed'?(signedBatteryW===null?null:Math.max(0,-signedBatteryW)):p('battery_charge');
-      const bd=this._entities.battery_mode==='signed'?(signedBatteryW===null?null:Math.max(0,signedBatteryW)):p('battery_discharge');
+      const imp=gridSigned?(signedGridW===null?null:Math.max(0,signedGridW)):(hasEntity(this._entities.grid_import)?p('grid_import'):0);
+      const exp=gridSigned?(signedGridW===null?null:Math.max(0,-signedGridW)):(hasEntity(this._entities.grid_export)?p('grid_export'):0);
+      const bc=batterySigned?(signedBatteryW===null?null:Math.max(0,-signedBatteryW)):(hasEntity(this._entities.battery_charge)?p('battery_charge'):0);
+      const bd=batterySigned?(signedBatteryW===null?null:Math.max(0,signedBatteryW)):(hasEntity(this._entities.battery_discharge)?p('battery_discharge'):0);
       const grid=imp===null||exp===null?null:imp-exp;
       const battery=bd===null||bc===null?null:bd-bc;
       const amounts={};for(const item of this._individual){const u=str(item.entity_unit||'auto');const ref=u!=='auto'&&u?{entity:item.entity,unit:u}:item.entity;amounts[item.id]=this._readPower(ref);}
@@ -480,7 +498,8 @@
       const deductions=missingDeduction?null:subtractItems.reduce((sum,item)=>sum+Math.max(0,amounts[item.id]*n(item.multiplier,1)),0);
       const complete=[pv,imp,exp,bc,bd].every(Number.isFinite);
       const fromBalance=complete?homeEnergyBalance(pv,imp,exp,bc,bd,0):null;
-      const house=fromBalance!==null && deductions!==null ? Math.max(0,fromBalance-deductions) : null;
+      const directHouse=hasEntity(this._entities.home)?raw.home:null;
+      const house=deductions===null?null:hasEntity(this._entities.home)?(directHouse===null?null:Math.max(0,directHouse-deductions)):(fromBalance!==null?Math.max(0,fromBalance-deductions):null);
       const zeroFor=(id,v)=>displayW(v,this._nodes[id]?.zero_tolerance_w??10);
       const visualPv=zeroFor('pv',pv);
       const visualGrid=zeroFor('grid',grid);
@@ -537,14 +556,13 @@
         this._ring('battery',ringValue('battery',soc),false,fixedBatteryColor);
       }
       const gridSpec=this._nodes.grid;
-      const warnLoad=this._entities.grid_mode==='signed' && (!gridSpec.alert_entity || gridSpec.alert_entity===ENTITY_DEFAULTS.grid_import)
-        ? imp : this._readPower(gridSpec.alert_entity);
+      const warnLoad=!hasEntity(gridSpec.alert_entity)?imp:this._readPower(gridSpec.alert_entity);
       const threshold=gridSpec.alert_threshold_mode==='entity'
         ? this._readPower(gridSpec.alert_threshold_entity,gridSpec.alert_threshold_entity_unit||'W')
         :Math.max(0,n(gridSpec.alert_threshold_w,5000))*(str(gridSpec.alert_threshold_unit||'W').toLowerCase()==='kw'?1000:1);
       const warnAt=clamp(n(gridSpec.alert_from_percent,90),0,100);
       const warn=Number.isFinite(warnLoad)&&Number.isFinite(threshold)&&threshold>0&&warnLoad>=threshold*warnAt/100;
-      const gridRingValue=this._entities.grid_mode==='signed' && (!gridSpec.ring_entity || gridSpec.ring_entity===ENTITY_DEFAULTS.grid_import)
+      const gridRingValue=!hasEntity(gridSpec.ring_entity)
         ? (()=>{const maximum=gridSpec.ring_max_mode==='entity'
             ? this._readPower(gridSpec.ring_max_entity,gridSpec.ring_max_entity_unit||'W')
             : n(gridSpec.ring_max,5000)*(str(gridSpec.ring_unit||'W').toLowerCase()==='kw'?1000:1);
@@ -572,7 +590,11 @@
         shares={pv:pvHome/sumSources*100,grid:gridHome/sumSources*100,battery:batHome/sumSources*100};
       }
       this._mixRing(shares);
-      this._put('[data-energy-split]',`PV ${fmt(shares.pv)} % · Netz ${fmt(shares.grid)} % · Speicher ${fmt(shares.battery)} %`);
+      const splitParts=[];
+      if(this._active.pv)splitParts.push(`PV ${fmt(shares.pv)} %`);
+      if(this._active.grid)splitParts.push(`Netz ${fmt(shares.grid)} %`);
+      if(this._active.battery)splitParts.push(`Speicher ${fmt(shares.battery)} %`);
+      this._put('[data-energy-split]',splitParts.join(' · '));
       this._put('[data-fossil]',raw.fossil===null?'':`Fossiler Stromanteil ${fmt(raw.fossil)} %`);
       this._put('[data-status]',complete&&deductions!==null?'LIVE':'TEILWEISE');
       for(const item of this._individual){
@@ -757,10 +779,10 @@
       const c=this._config,entity={...ENTITY_DEFAULTS,...(c.entities||{})};
       const nodes={};Object.keys(NODES_DEFAULT).forEach(k=>nodes[k]={...NODES_DEFAULT[k],...(c.nodes?.[k]||{})});
       const individuals=normalizeIndividuals(c.individual);
-      const entityRows=[['pv','PV-Leistung (W)'],['grid_import','Netzbezug (W)'],['grid_export','Netzeinspeisung (W)'],['grid_power','Netzleistung vorzeichenbehaftet (W)'],['battery_charge','Batterie laden (W)'],['battery_discharge','Batterie entladen (W)'],['battery_power','Batterieleistung vorzeichenbehaftet (W)'],['battery_soc','Batterie-SOC (%)'],['fossil','Fossiler Stromanteil (%)'],['pv_to_home','PV direkt zum Haus (optional)'],['grid_to_home','Netz direkt zum Haus (optional)'],['battery_to_home','Batterie direkt zum Haus (optional)']];
+      const entityRows=[['pv','PV-Leistung (W)'],['home','Hausverbrauch direkt (optional)'],['grid_import','Netzbezug (W)'],['grid_export','Netzeinspeisung (W)'],['grid_power','Netzleistung vorzeichenbehaftet (W)'],['battery_charge','Batterie laden (W)'],['battery_discharge','Batterie entladen (W)'],['battery_power','Batterieleistung vorzeichenbehaftet (W)'],['battery_soc','Batterie-SOC (%)'],['fossil','Fossiler Stromanteil (%)'],['pv_to_home','PV direkt zum Haus (optional)'],['grid_to_home','Netz direkt zum Haus (optional)'],['battery_to_home','Batterie direkt zum Haus (optional)']];
       const nodeFields=['pv','grid','battery','home'].map(id=>{
         const item=nodes[id];
-        return `<div class="item"><div class="itemtop">${esc(id.toUpperCase())}</div><div class="fields">
+        return `<div class="item"><div class="itemtop">${esc({pv:'PV',grid:'NETZ',battery:'BATTERIE',home:'HOME'}[id])}</div><div class="fields">
           ${this._field('Anzeigename',`nodes.${id}.name`,item.name)}
           ${this._field('Nulltoleranz / Anzeige erst ab (W)',`nodes.${id}.zero_tolerance_w`,item.zero_tolerance_w??10,{number:true})}
           ${this._field('Symbol',`nodes.${id}.icon`,item.icon)}
@@ -797,7 +819,6 @@
             ?`${this._field('Roter Warnring ab – Entität',`nodes.grid.alert_threshold_entity`,item.alert_threshold_entity,{entity:true,wide:true})}${this._field('Einheit der Warnschwellen-Entität',`nodes.grid.alert_threshold_entity_unit`,item.alert_threshold_entity_unit||'W',{options:[['W','W'],['kW','kW']]})}`
             :`${this._field('Roter Warnring ab – fester Wert',`nodes.grid.alert_threshold_w`,item.alert_threshold_w,{number:true})}${this._field('Einheit Warnschwelle',`nodes.grid.alert_threshold_unit`,item.alert_threshold_unit||'W',{options:[['W','Watt (W)'],['kW','Kilowatt (kW)']]})}`}
           ${this._field('Farbe des Warnrings (HEX)',`nodes.grid.alert_color`,item.alert_color||T.warning)}${this._field('Warnung ab % des Grenzwerts',`nodes.grid.alert_from_percent`,item.alert_from_percent,{number:true})}`:''}
-          ${this._field('Knoten anzeigen',`nodes.${id}.show`,item.show!==false,{check:true})}
         </div></div>`;
       }).join('');
       const individualFields=individuals.map((item,index)=>`<div class="item">
@@ -839,7 +860,7 @@
           ${this._field('Mobil: Bilder pro Sekunde (10–60)','animation.mobile_fps',c.animation?.mobile_fps??25,{number:true})}
           ${this._field('Mobil: Maximale Partikel (1–5)','animation.mobile_max_particles',c.animation?.mobile_max_particles??2,{number:true})}
         </div></details>
-        <details data-section="entities"><summary>Haupt-Kacheln</summary><div class="in fields">
+        <details data-section="entities"><summary>Haupt-Kacheln</summary><div class="in fields"><p class="note" style="grid-column:1/-1">PV, NETZ und BATTERIE erscheinen automatisch, sobald mindestens eine zugehörige Entität ausgewählt ist. Sind sämtliche Entitäten eines Zweigs leer, wird der Zweig inklusive Verbindung ausgeblendet. HOME erscheint bei mindestens einer konfigurierten Energiequelle oder einem eigenen Hausverbrauchssensor.</p>
           ${this._field('Netz – Leistungsquelle',`entities.grid_mode`,entity.grid_mode||'separate',{wide:true,options:[['separate','Getrennte Entitäten Bezug + Einspeisung'],['signed','Eine vorzeichenbehaftete Entität']]})}
           ${this._field('Batterie – Leistungsquelle',`entities.battery_mode`,entity.battery_mode||'separate',{wide:true,options:[['separate','Getrennte Entitäten Laden + Entladen'],['signed','Eine vorzeichenbehaftete Entität']]})}
           ${entityRows.filter(([key])=>{
@@ -850,7 +871,7 @@
             return true;
           }).map(([key,name])=>`
              ${this._field(name,`entities.${key}`,typeof entity[key]==='string'?entity[key]:entity[key]?.entity,{entity:true,wide:true})}
-             ${['pv','grid_import','grid_export','grid_power','battery_charge','battery_discharge','battery_power','pv_to_home','grid_to_home','battery_to_home'].includes(key)
+             ${['pv','home','grid_import','grid_export','grid_power','battery_charge','battery_discharge','battery_power','pv_to_home','grid_to_home','battery_to_home'].includes(key)
                ? this._field(`Einheit überschreiben – ${name.split(' (')[0]}`,`entities.${key}_unit`,entity[`${key}_unit`]||'auto',{wide:true,options:[['auto','Automatisch (Home Assistant)'],['W','W'],['kW','kW'],['MW','MW']]}) : ''}
           `).join('')}
           ${(entity.grid_mode||'separate')==='signed'?this._field('Netz – Vorzeichen umkehren',`entities.grid_invert_sign`,entity.grid_invert_sign===true,{check:true}):''}

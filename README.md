@@ -1,6 +1,6 @@
 # EMH Power Flow Card
 
-[![Version](https://img.shields.io/badge/Version-1.0.0-00b7c8)](./CHANGELOG.md)
+[![Version](https://img.shields.io/badge/Version-1.0.1-00b7c8)](./CHANGELOG.md)
 [![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](LICENSE)
 [![Home Assistant](https://img.shields.io/badge/Home_Assistant-Lovelace-41BDF5?logo=homeassistant&logoColor=white)](https://www.home-assistant.io/)
 [![PayPal.Me](https://img.shields.io/badge/PayPal.Me-domh7C4-00457C?logo=paypal&logoColor=white)](https://paypal.me/domh7C4)
@@ -10,43 +10,48 @@
 
 Die EMH Power Flow Card ist eine eigenständige Lovelace-Custom-Card. Sie stellt die aktuellen Leistungsflüsse übersichtlich dar, berechnet den Hausverbrauch aus Messwerten und zeigt die geschätzte Herkunft des verbrauchten Stroms. Die Karte besitzt einen grafischen Home-Assistant-Konfigurationseditor und ist für Desktop und Mobilgeräte ausgelegt.
 
-## Vorschau – Desktop
+## Vorschau der echten Card (Demo mit simulierten Sensorwerten)
 
-![EMH Power Flow Card – Desktop-Demovorschau mit Individual 1 bis 6](assets/demo-desktop.png)
+Die folgenden Bilder wurden **direkt aus dem originalen JavaScript der EMH Power Flow Card** im Browser aufgenommen. Es sind keine KI-Grafiken und keine Screenshots privater Home-Assistant-Daten. Die Sensoren und Messwerte werden ausschließlich für diese Demo simuliert.
 
-## Vorschau – Mobil
+### Desktop – sechs Individual-Kacheln
 
-![EMH Power Flow Card – Mobil-Demovorschau mit Individual 1 bis 6](assets/demo-mobile.png)
+![Echte EMH Power Flow Card im Browser, Desktop mit Individual 1 bis 6](assets/real-desktop.png)
 
-> **Hinweis zu den Bildern:** Die beiden Abbildungen sind **gestaltete Konzeptillustrationen** mit **rein fiktiven Leistungs-, SOC- und Statuswerten**. Die Verbraucher heißen bewusst **Individual 1 bis Individual 6**. Es handelt sich nicht um Live-Screenshots der Lovelace-Card und nicht um Messdaten einer realen Home-Assistant-Installation. Die tatsächliche Darstellung richtet sich nach Bildschirmgröße, Theme und Konfiguration.
+### Mobil – sechs Individual-Kacheln
+
+![Echte EMH Power Flow Card im Browser, Mobil mit Individual 1 bis 6](assets/real-mobile.png)
 
 <details>
-<summary>Tatsächliche Home-Assistant-Card im Browser anzeigen</summary>
+<summary>Mobil – drei Individual-Kacheln und automatische Anordnung</summary>
 
-![EMH Power Flow Card – tatsächliche Desktop-Darstellung](assets/desktop.png)
-
-![EMH Power Flow Card – tatsächliche Mobil-Darstellung mit drei Kacheln](assets/mobile.png)
+![EMH Card mobil mit drei Individual-Kacheln in unterer Rasterreihe](assets/real-mobile-3.png)
 
 </details>
 
+<details>
+<summary>Nur PV konfiguriert – Netz- und Batteriezweig automatisch ausgeblendet</summary>
 
+![EMH Card mit PV und Haus, ohne Netz und Batterie](assets/real-only-pv.png)
 
-### Beispielwerte in den Illustrationen
+</details>
+
+**Fiktive Demowerte:** PV 3.200 W, Netzbezug 350 W, Batterieentladung 850 W, SOC 76 % und Hausverbrauch 4.400 W. Die Hausbilanz stimmt dabei mit den Eingangswerten überein.
 
 | Kachel | Fiktive Leistung | Fiktive Zusatzanzeige |
 |---|---:|---|
 | Individual 1 | 742 W | Waschgang · 38 °C |
 | Individual 2 | 1,58 kW | Lädt · 76 % |
 | Individual 3 | 215 W | Heizung · Aktiv |
-| Individual 4 | 96 W | Kühlung · 5 °C |
-| Individual 5 | 328 W | Standby |
-| Individual 6 | 2,40 kW | Heute 2,4 kWh |
+| Individual 4 | 96 W | Warmwasser · 45 °C |
+| Individual 5 | 328 W | Wärmepumpe |
+| Individual 6 | 240 W | Server · Online |
 
-Diese Werte dienen ausschließlich zur Darstellung der Layoutmöglichkeiten.
+**[Interaktive Offline-Demo](demo.html):** `demo.html` gemeinsam mit `emh-power-flow-card.js` herunterladen bzw. aus dem Repository-ZIP entpacken und im Browser öffnen. Du kannst zwischen sechs, drei oder vier Individual-Kacheln, einzelnen Energiequellen und einer komplett leeren Konfiguration umschalten. Es ist kein Home-Assistant-Zugang erforderlich.
 
 ## Funktionen im Überblick
 
-- **Vier Haupt-Kacheln:** PV oben, Netz links, Batteriespeicher rechts, Haus in der Mitte. Runde Kacheln mit konfigurierbaren Außenringen und Statuszeilen.
+- **Vier Haupt-Kacheln:** PV oben, Netz links, Batteriespeicher rechts, Haus in der Mitte. Runde Kacheln mit konfigurierbaren Außenringen und Statuszeilen. Nicht konfigurierte Energiezweige werden automatisch ausgeblendet; ein manueller Schalter „Knoten deaktivieren“ ist nicht notwendig.
 - **Hausverbrauch:** Automatische Berechnung aus PV-Erzeugung, Netzbezug, Einspeisung, Batterieentladung und Batterieladung; einzelne Individual-Verbraucher können optional abgezogen werden.
 - **Energieherkunft:** Dreifarbiger Hausring für PV (Gelb), Netz (Blau) und Batterie (Grün); prozentuale Aufteilung zusätzlich in der optionalen Fußzeile.
 - **Netzlastwarnung:** Der Netzring wechselt ab einer konfigurierbaren Lastschwelle auf eine frei einstellbare Warnfarbe.
@@ -94,7 +99,7 @@ HACS → **Benutzerdefinierte Repositories** → öffentliche GitHub-URL eingebe
 2. Unter **Einstellungen → Dashboards → Ressourcen** diese **JavaScript-Modul**-Ressource anlegen:
 
    ```text
-   /local/emh-power-flow-card.js?v=1.0.0
+   /local/emh-power-flow-card.js?v=1.0.1
    ```
 
 3. Das Dashboard vollständig neu laden; bei Problemen mit der Companion-App den Frontend-Cache leeren.
@@ -107,11 +112,11 @@ HACS → **Benutzerdefinierte Repositories** → öffentliche GitHub-URL eingebe
 type: custom:emh-power-flow-card
 ```
 
-Die gewünschten Sensoren und Optionen können anschließend im **grafischen Konfigurationseditor** eingestellt werden. Die Card enthält keine eigenen Messsensoren und benötigt für Live-Werte die Zuordnung deiner Home-Assistant-Entitäten. Die Vorschau oben verwendet ausschließlich fiktive Demowerte.
+Die gewünschten Sensoren und Optionen können anschließend im **grafischen Konfigurationseditor** eingestellt werden. Die Card enthält keine eigenen Messsensoren und benötigt für Live-Werte die Zuordnung deiner Home-Assistant-Entitäten. Die im Abschnitt „Vorschau“ gezeigten Werte stammen ausschließlich aus der Offline-Demo.
 
 ## Grundkonfiguration ohne Entitäten
 
-Du kannst die Card zunächst **ohne eingetragene Entitäten** zum Dashboard hinzufügen und anschließend alle Sensoren im grafischen Editor auswählen. Ohne echte Sensorzuordnung zeigt die Card **keine fiktiven Live-Werte**: Die Bilder in der Vorschau sind rein illustrative Beispiele.
+Du kannst die Card zunächst **ohne eingetragene Entitäten** zum Dashboard hinzufügen und anschließend alle Sensoren im grafischen Editor auswählen. Ohne echte Sensorzuordnung zeigt die Card **keine fiktiven Live-Werte**: Die Bilder in der Vorschau wurden direkt aus der Card mit fiktiven Sensorzuständen aufgenommen.
 
 ```yaml
 type: custom:emh-power-flow-card
@@ -145,7 +150,7 @@ display:
   info_button: true
 ```
 
-Sobald du in **Haupt-Kacheln** die Sensoren für PV, Netz, Speicher und Batterie-SOC zuweist, werden die Live-Werte angezeigt. Für die Individual-Kacheln erfolgt die Zuordnung jeweils über **Haupt-Entität**. Alle nicht angegebenen Konfigurationsfelder verwenden die Standardwerte der Card.
+Die Haupt-Kacheln **PV, NETZ, BATTERIE und HOME** erscheinen automatisch, sobald passende Entitäten ausgewählt sind. Wenn ein Zweig keinerlei zugehörige Entität hat, werden Kachel, Verbindung und Animation ausgeblendet. Der HOME-Knoten erscheint, sobald mindestens eine Quelle oder ein direkter Haussensor konfiguriert ist. Für die Individual-Kacheln erfolgt die Zuordnung jeweils über **Haupt-Entität**. Alle nicht angegebenen Konfigurationsfelder verwenden die Standardwerte der Card.
 
 ## Entitäten und Leistungsquellen
 
@@ -202,7 +207,7 @@ Für die farblichen Anteile am Hausring werden PV, Netz und Batterie unter Berü
 
 ## Haupt-Kacheln, Außenringe und Farben
 
-`nodes.pv`, `nodes.grid`, `nodes.battery` und `nodes.home` steuern die vier runden Haupt-Kacheln. Jede Kachel unterstützt folgende Grundeinstellungen:
+`nodes.pv`, `nodes.grid`, `nodes.battery` und `nodes.home` steuern die vier runden Haupt-Kacheln. Die Bereiche im grafischen Editor heißen **PV**, **NETZ**, **BATTERIE** und **HOME**. Welche Kacheln angezeigt werden, hängt automatisch von den konfigurierten Entitäten ab:
 
 | Option | Beschreibung |
 |---|---|
@@ -211,7 +216,6 @@ Für die farblichen Anteile am Hausring werden PV, Netz und Batterie unter Berü
 | `color` | Hauptfarbe im HEX-Format `#RRGGBB`; Auswahl auch per Farbwähler |
 | `popup` | Popup-Hash, interner Lovelace-Pfad oder externe URL |
 | `zero_tolerance_w` | Werte unter dieser Leistung werden als 0 W angezeigt |
-| `show` | Kachel ein- oder ausblenden |
 
 ### Leistungsringe für PV, Netz und Batterie
 

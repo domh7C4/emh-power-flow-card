@@ -1,13 +1,17 @@
 # Changelog
 
+## [1.0.1] – Automatische Sichtbarkeit & reale Browser-Demo
+
+- Haupt-Kacheln im Editor als **PV**, **NETZ**, **BATTERIE**, **HOME** bezeichnet.
+- Manuellen Schalter für die Sichtbarkeit dieser vier Haupt-Kacheln entfernt.
+- PV-/Netz-/Batteriezweige erscheinen nur bei konfigurierten zugehörigen Entitäten; beim Speicher wird auch die SOC-Entität berücksichtigt.
+- HOME nur mit mindestens einer Quelle oder einem direkt konfigurierten Hausverbrauchssensor.
+- Verbindungen und Partikel ausgeblendeter Zweige verschwinden mit den Kacheln.
+- Neue Karten starten ohne vorausgewählte Entitäten und ohne Individual-Kacheln.
+- Interaktive Offline-Demo anhand des unveränderten Karten-Renderings mit fiktiven Zuständen und Original-Screenshots für Desktop und Mobil.
+
 ## [1.0.0] – Erste öffentliche Veröffentlichung
 
-Erste öffentliche Veröffentlichung der EMH Power Flow Card. Enthält:
-
-- Interaktive Energieflussanzeige für Photovoltaik, Netz, Batterie und Haus.
-- Hausbilanz mit dreifarbigem Herkunftsring, frei konfigurierbaren Leistungsringen, Farben und Netzlastwarnung.
-- Bis zu sechs Individual-Kacheln mit Zusatzwerten, Statusanzeige und Navigation.
-- Responsive Desktop- und Mobilansichten mit automatischer Anordnung und energiesparender Animation.
-- Grafischen Konfigurationseditor, Einheitenauswahl sowie Lovelace- und Popup-Unterstützung.
-- Installation über Home Assistant Marketplace/HACS als benutzerdefiniertes Dashboard-Repository.
-- Veröffentlichung unter GPL-3.0-only und freiwillige Unterstützung via Buy Me a Coffee.
+- Interaktive Energieflussanzeige mit farbigen Leistungsringen und Hausverbrauchsbilanz.
+- Bis zu sechs Individual-Kacheln, Animationen und responsive Darstellung.
+- Grafischer Editor, HACS-Unterstützung, GPL-3.0-only und optionale Spendenlinks.
