@@ -407,11 +407,11 @@ Die Karte ersetzt keine Popup-Integration. Hash-Navigation hängt davon ab, wie 
 
 Der Quellcode ist unter der **GNU General Public License, Version 3 (GPL-3.0-only)** veröffentlicht. Die Lizenzbedingungen stehen in [LICENSE](LICENSE). Weitergabe und Änderung sind im Rahmen dieser Lizenz erlaubt; für weitergegebene abgeleitete Werke gelten die GPL-Vorgaben.
 
-EMH Power Flow Card kann kostenlos verwendet werden. Wenn dir die Entwicklung hilft, kannst du sie freiwillig unterstützen:
+## Unterstützung / Sponsor
 
-[![PayPal.Me](https://img.shields.io/badge/PayPal.Me-domh7C4-00457C?logo=paypal&logoColor=white)](https://paypal.me/domh7C4)
+Wenn dir dieses Projekt hilft, kannst du die Weiterentwicklung freiwillig unterstützen:
 
-Eine Spende ist **keine Voraussetzung** für die Verwendung. Der Spendenlink muss vor dem Veröffentlichen einem aktiven Profil zugeordnet sein.
+[![PayPal](https://img.shields.io/badge/PayPal-Spenden-00457C?logo=paypal&logoColor=white)](https://www.paypal.me/domh7C4)
 
 Die Installationsschritte für dein öffentliches Repository, den direkten Marketplace-Badge und den GitHub-Release-Workflow findest du in [PUBLISHING.md](PUBLISHING.md).
 
