@@ -10,4 +10,4 @@ Erste öffentliche Veröffentlichung der EMH Power Flow Card. Enthält:
 - Responsive Desktop- und Mobilansichten mit automatischer Anordnung und energiesparender Animation.
 - Grafischen Konfigurationseditor, Einheitenauswahl sowie Lovelace- und Popup-Unterstützung.
 - Installation über Home Assistant Marketplace/HACS als benutzerdefiniertes Dashboard-Repository.
-- Veröffentlichung unter GPL-3.0-only und freiwillige Unterstützung via PayPal.Me.
+- Veröffentlichung unter GPL-3.0-only und freiwillige Unterstützung via Buy Me a Coffee.

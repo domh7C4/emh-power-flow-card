@@ -7,12 +7,12 @@
 3. Darauf achten, dass `README.md`, `LICENSE`, `hacs.json` und `emh-power-flow-card.js` im Root stehen und **nicht** in einem zusätzlichen Unterordner.
 4. Branch `main` verwenden. Die JavaScript-Prüfung erfolgt über GitHub Actions.
 
-## 2. Buy Me a Coffee einrichten
+## 2. PayPal.Me als freiwillige Unterstützung verlinken
 
-- Profil auf https://buymeacoffee.com anlegen und den Namen `domhoe2023` wählen, sofern noch verfügbar.
-- Auszahlungen gemäß Anbieter über Stripe einrichten.
-- Prüfen, dass `https://buymeacoffee.com/domhoe2023` wirklich auf dein Profil führt.
-- GitHub zeigt über `.github/FUNDING.yml` (`buy_me_a_coffee: domhoe2023`) den **Sponsor**-Button an. Der README-Badge führt zum selben Profil.
+- Einen aktiven PayPal.Me-Link unter `https://paypal.me/domh7C4` prüfen.
+- Die Datei `.github/FUNDING.yml` enthält diesen Link unter `custom:`. Dadurch kann GitHub den **Sponsor**-Button anzeigen.
+- Die README verwendet denselben PayPal.Me-Link als Badge.
+- Die Unterstützung ist freiwillig; für die Nutzung der Card ist keine Zahlung erforderlich.
 
 ## 3. Marketplace-Badge für genau dein Repository
 

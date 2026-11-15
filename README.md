@@ -10,13 +10,39 @@
 
 Die EMH Power Flow Card ist eine eigenständige Lovelace-Custom-Card. Sie stellt die aktuellen Leistungsflüsse übersichtlich dar, berechnet den Hausverbrauch aus Messwerten und zeigt die geschätzte Herkunft des verbrauchten Stroms. Die Karte besitzt einen grafischen Home-Assistant-Konfigurationseditor und ist für Desktop und Mobilgeräte ausgelegt.
 
-## Dektopversion
-![EMH Power Flow Card – Desktop](assets/desktop.png)
+## Vorschau – Desktop
 
-## Mobilversion
-![EMH Power Flow Card – Mobil mit 3 Individual-Kacheln (untere Rasterzeile)](assets/mobile.png)
+![EMH Power Flow Card – Desktop-Demovorschau mit Individual 1 bis 6](assets/demo-desktop.png)
+
+## Vorschau – Mobil
+
+![EMH Power Flow Card – Mobil-Demovorschau mit Individual 1 bis 6](assets/demo-mobile.png)
+
+> **Hinweis zu den Bildern:** Die beiden Abbildungen sind **gestaltete Konzeptillustrationen** mit **rein fiktiven Leistungs-, SOC- und Statuswerten**. Die Verbraucher heißen bewusst **Individual 1 bis Individual 6**. Es handelt sich nicht um Live-Screenshots der Lovelace-Card und nicht um Messdaten einer realen Home-Assistant-Installation. Die tatsächliche Darstellung richtet sich nach Bildschirmgröße, Theme und Konfiguration.
+
+<details>
+<summary>Tatsächliche Home-Assistant-Card im Browser anzeigen</summary>
+
+![EMH Power Flow Card – tatsächliche Desktop-Darstellung](assets/desktop.png)
+
+![EMH Power Flow Card – tatsächliche Mobil-Darstellung mit drei Kacheln](assets/mobile.png)
+
+</details>
 
 
+
+### Beispielwerte in den Illustrationen
+
+| Kachel | Fiktive Leistung | Fiktive Zusatzanzeige |
+|---|---:|---|
+| Individual 1 | 742 W | Waschgang · 38 °C |
+| Individual 2 | 1,58 kW | Lädt · 76 % |
+| Individual 3 | 215 W | Heizung · Aktiv |
+| Individual 4 | 96 W | Kühlung · 5 °C |
+| Individual 5 | 328 W | Standby |
+| Individual 6 | 2,40 kW | Heute 2,4 kWh |
+
+Diese Werte dienen ausschließlich zur Darstellung der Layoutmöglichkeiten.
 
 ## Funktionen im Überblick
 
@@ -81,9 +107,11 @@ HACS → **Benutzerdefinierte Repositories** → öffentliche GitHub-URL eingebe
 type: custom:emh-power-flow-card
 ```
 
-Die gewünschten Sensoren und Optionen können anschließend im **grafischen Konfigurationseditor** eingestellt werden. Die Card liefert Beispielsensoren, die du an deine eigenen Entitäten anpassen musst.
+Die gewünschten Sensoren und Optionen können anschließend im **grafischen Konfigurationseditor** eingestellt werden. Die Card enthält keine eigenen Messsensoren und benötigt für Live-Werte die Zuordnung deiner Home-Assistant-Entitäten. Die Vorschau oben verwendet ausschließlich fiktive Demowerte.
 
-## Grundkonfiguration
+## Grundkonfiguration ohne Entitäten
+
+Du kannst die Card zunächst **ohne eingetragene Entitäten** zum Dashboard hinzufügen und anschließend alle Sensoren im grafischen Editor auswählen. Ohne echte Sensorzuordnung zeigt die Card **keine fiktiven Live-Werte**: Die Bilder in der Vorschau sind rein illustrative Beispiele.
 
 ```yaml
 type: custom:emh-power-flow-card
@@ -92,16 +120,6 @@ min_flow_w: 0
 appearance:
   transparent_background: true
   ring_width_percent: 50
-entities:
-  pv: sensor.pv_power
-  grid_mode: separate
-  grid_import: sensor.grid_import
-  grid_export: sensor.grid_export
-  battery_mode: separate
-  battery_charge: sensor.battery_chargepower
-  battery_discharge: sensor.battery_dischargepower
-  battery_soc: sensor.battery_soc
-  fossil: sensor.electricity_maps_anteil_fossiler_energietrager
 nodes:
   grid:
     ring_max: 5000
@@ -127,7 +145,7 @@ display:
   info_button: true
 ```
 
-Die Konfiguration kann über den Editor oder direkt in YAML erfolgen. Bei der Konfiguration von Einzel-Kacheln (`nodes`) reichen die Felder, die vom Standard abweichen; Standardwerte werden automatisch ergänzt.
+Sobald du in **Haupt-Kacheln** die Sensoren für PV, Netz, Speicher und Batterie-SOC zuweist, werden die Live-Werte angezeigt. Für die Individual-Kacheln erfolgt die Zuordnung jeweils über **Haupt-Entität**. Alle nicht angegebenen Konfigurationsfelder verwenden die Standardwerte der Card.
 
 ## Entitäten und Leistungsquellen
 
@@ -158,9 +176,9 @@ Leistungen werden intern in **Watt (W)** verarbeitet. Die Card kann `W`, `kW` un
 
 ```yaml
 entities:
-  pv: sensor.pv_leistung_kw
+  pv: sensor.beispiel_pv_kw
   pv_unit: kW
-  grid_import: sensor.grid_import
+  grid_import: sensor.beispiel_netzbezug
   grid_import_unit: auto
 ```
 
@@ -227,7 +245,7 @@ Unter `nodes.grid` lässt sich ein Warnring konfigurieren:
 ```yaml
 nodes:
   grid:
-    alert_entity: sensor.grid_import
+    alert_entity: sensor.beispiel_netzbezug
     alert_threshold_mode: fixed
     alert_threshold_w: 5000
     alert_threshold_unit: W
@@ -261,29 +279,45 @@ Unterhalb des Energieflusses können bis zu sechs Kacheln dargestellt werden, au
 
 ```yaml
 individual:
-  - id: og
-    name: Obergeschoss
-    entity: sensor.sm2_power_total_raw
-    entity_unit: auto
-    icon: mdi:home-floor-2
-    popup: "#pop-up-og"
+  - id: individual_1
+    name: Individual 1
+    icon: mdi:washing-machine
     secondary_mode: text
-    secondary_text: Verbrauch
-    multiplier: 1
-    zero_tolerance_w: 10
-    deduct_from_home: false
-    highlight_active_enabled: false
+    secondary_text: Waschgang
     show: true
-  - id: wallbox
-    name: Wallbox
-    entity: sensor.ev_charge_1_wb_chargepower
-    icon: mdi:ev-station
-    popup: "#pop-up-wallbox"
-    secondary_mode: entity
-    secondary_entity: sensor.ev_charge_1_carsoc
-    secondary_label: Fahrzeug
-    secondary_unit: "%"
+  - id: individual_2
+    name: Individual 2
+    icon: mdi:car-electric
+    secondary_mode: text
+    secondary_text: Lädt
+    show: true
+  - id: individual_3
+    name: Individual 3
+    icon: mdi:thermometer
+    secondary_mode: text
+    secondary_text: Heizung
+    show: true
+  - id: individual_4
+    name: Individual 4
+    icon: mdi:snowflake
+    secondary_mode: text
+    secondary_text: Kühlung
+    show: true
+  - id: individual_5
+    name: Individual 5
+    icon: mdi:monitor
+    secondary_mode: text
+    secondary_text: Standby
+    show: true
+  - id: individual_6
+    name: Individual 6
+    icon: mdi:calendar
+    secondary_mode: text
+    secondary_text: Energie
+    show: true
 ```
+
+**Wichtig:** Dieses Beispiel definiert nur die sechs Kacheln und ihre Beschriftungen. Für Leistungswerte musst du im Editor jeder Kachel eine **Haupt-Entität** zuordnen. Die Werte in den Vorschaubildern sind erfunden und werden vom obigen YAML **nicht simuliert**.
 
 | Option | Funktion |
 |---|---|
@@ -364,7 +398,7 @@ Die Karte ersetzt keine Popup-Integration. Hash-Navigation hängt davon ab, wie 
 - Ursprungsring: Anteile werden normiert und als zusammenhängende SVG-Bögen ausgegeben.
 - Außenringe: Einheit, Maximum und Farbgebung für jede Haupt-Kachel separat konfigurierbar.
 - Frontend: Die gesamte Card wird über eine einzige JavaScript-Datei ausgeliefert; keine zusätzlichen Laufzeitdateien erforderlich.
-- Die Standard-Entitätsnamen sind Beispiele. Sie müssen nicht identisch mit den verwendeten Entitäten anderer Anlagen sein.
+- Sämtliche `sensor.beispiel_*`-Namen in den YAML-Ausschnitten sind **Platzhalter**. Sie sind keine realen Home-Assistant-Entitäten und müssen für eine funktionierende Live-Anzeige durch eigene Sensoren ersetzt werden.
 
 ## Open Source, Lizenz und Unterstützung
 

@@ -1,172 +1,71 @@
-# EMH Power Flow Card v1.0.2 – Home Assistant
-# Ressource bei manueller Installation: /local/emh-power-flow-card.js?v=1.0.2
-# Kartentyp unverändert: custom:emh-power-flow-card
+# EMH Power Flow Card v1.0.0 – entitätsfreie Basisvorlage
+# Die Illustrationen in README.md zeigen fiktive Demowerte.
+# Ohne eigene Home-Assistant-Sensoren werden keine Live-Leistungen angezeigt.
+# Nach dem Hinzufügen Entitäten im grafischen Editor zuweisen.
+
 type: custom:emh-power-flow-card
 theme: auto
 min_flow_w: 0
+
 appearance:
-  transparent_background: true # Karte mit transparentem Hintergrund
-  ring_width_percent: 50 # 50 = halbe Ringbreite
+  transparent_background: true
+  ring_width_percent: 50
+
 animation:
-  style: dots # dots, comet, pulse, dash
-  speed: 1 # 0 = Animation aus, 1 = normal, 3 = maximal
+  style: dots
+  speed: 1
   glow: 65
   max_drops: 3
   mobile_power_save: true
   mobile_fps: 25
   mobile_max_particles: 2
-entities:
-  pv: sensor.pv_power
-  # pv_unit: kW # Optional: Sensor-Einheit überschreiben (W/kW/MW)
-  grid_mode: separate # separate oder signed
-  grid_import: sensor.grid_import
-  # grid_import_unit: W
-  grid_export: sensor.grid_export
-  # Bei grid_mode: signed stattdessen:
-  # grid_power: sensor.grid_consumption  # + Bezug, - Einspeisung
-  # grid_invert_sign: false
-  battery_mode: separate # separate oder signed
-  battery_charge: sensor.battery_chargepower
-  battery_discharge: sensor.battery_dischargepower
-  # Bei battery_mode: signed stattdessen:
-  # battery_power: sensor.battery_power_signed  # + Entladen, - Laden
-  # battery_invert_sign: false
-  battery_soc: sensor.battery_soc
-  fossil: sensor.electricity_maps_anteil_fossiler_energietrager
-  # Optional, wenn vorhanden:
-  # pv_to_home: sensor.pv_to_home
-  # grid_to_home: sensor.grid_to_home
-  # battery_to_home: sensor.battery_to_home
+
 nodes:
-  pv:
-    name: Photovoltaik
-    zero_tolerance_w: 10 # Bis einschließlich < 10 W wird 0 W angezeigt
-    icon: mdi:solar-power
-    color: '#f5b916'
-    popup: '#pop-up-pv'
-    # Zusatzzeile: default, text, state oder entity
-    secondary_mode: default
-    # secondary_mode: text
-    # secondary_text: Meine PV-Anlage
-    # secondary_mode: entity
-    # secondary_entity: sensor.pv_forcecast_today_total
-    # secondary_label: Prognose
-    ring_entity: sensor.pv_power
-    ring_max_mode: fixed # fixed oder entity
-    ring_max: 25
-    ring_unit: kW
-    # Für dynamisches Maximum stattdessen:
-    # ring_max_mode: entity
-    # ring_max_entity: sensor.pv_max_leistung
-    # ring_max_entity_unit: W # nur Fallback bei fehlender HA-Einheit
   grid:
-    name: Netz
-    zero_tolerance_w: 10
-    icon: mdi:transmission-tower
-    color: '#36a5f5'
-    popup: '#pop-up-grid'
-    secondary_mode: default # alternativ text/state/entity
-    # secondary_mode: state
-    # secondary_entity: binary_sensor.grid_alert
-    ring_entity: sensor.grid_import
-    ring_max_mode: fixed
-    ring_max: 5
-    ring_unit: kW
-    alert_entity: sensor.grid_import
-    alert_threshold_mode: fixed # fixed oder entity
+    ring_max: 5000
     alert_threshold_w: 5000
-    alert_threshold_unit: W
-    alert_color: "#f04b54" # Warnringfarbe frei einstellbar
-    alert_from_percent: 90 # Ab 4500 W rot, wenn Grenze 5000 W ist
-    # Alternativ dynamische Warnschwelle:
-    # alert_threshold_mode: entity
-    # alert_threshold_entity: sensor.emh_peak_limit
-    # alert_threshold_entity_unit: W # Fallback wenn keine HA-Einheit
+    alert_from_percent: 90
+    alert_color: "#f04b54"
   battery:
-    name: Batterie
-    zero_tolerance_w: 10
-    use_soc_colors: true # Rot <=20 %, Gelb <=50 %, sonst Grün
-    icon: mdi:battery
-    icon_style: horizontal # alternativ classic
-    color: '#50d584'
-    popup: '#pop-up-bat'
-    secondary_mode: default # alternativ text/state/entity
-    # secondary_mode: text
-    # secondary_text: Speicher aktiv
-    ring_source: soc # soc (Standard), power (Laden/Entladen) oder custom
-    # Bei ring_source: power:
-    # power_ring_max_mode: fixed # fixed oder entity
-    # power_ring_max: 5000
-    # power_ring_unit: W
-    # power_ring_max_entity: sensor.battery_max_power # nur wenn power_ring_max_mode: entity
-    # charge_ring_color: '#17c8de' # Ladung = türkis, gegenläufig gefüllt
-    # discharge_ring_color: '#50d584' # Entladung = grün
-    ring_entity: sensor.battery_soc
-    ring_max_mode: fixed
-    ring_max: 100
-    ring_unit: '%'
-  home:
-    name: Haus
-    zero_tolerance_w: 10
-    icon: mdi:home
-    popup: /energy
-individual:
-  - id: og
-    name: Obergeschoss
-    entity: sensor.sm2_power_total_raw
-    # entity_unit: kW # Optional: Haupt-Entität in W/kW/MW interpretieren
-    icon: mdi:home-floor-2
-    popup: '#pop-up-og'
-    secondary_mode: text
-    secondary_text: Verbrauch
-    # secondary_show_above_enabled: true # Zusatzzeile erst ab Schwelle
-    # secondary_threshold_w: 500
-    # highlight_active_enabled: true # grüne Aktiv-Hervorhebung
-    # highlight_active_color: "#50d584"
-    deduct_from_home: false # Bei true vom gesamten Hausverbrauch abziehen (nicht doppelt zählen)
-    zero_tolerance_w: 10
-  - id: ug
-    name: Untergeschoss
-    entity: sensor.sm1_power_no_wb
-    icon: mdi:home-floor-1
-    popup: '#pop-up-ug'
-    secondary_mode: text
-    secondary_text: Verbrauch
-    # secondary_show_above_enabled: true # Zusatzzeile erst ab Schwelle
-    # secondary_threshold_w: 500
-    # highlight_active_enabled: true # grüne Aktiv-Hervorhebung
-    # highlight_active_color: "#50d584"
-    deduct_from_home: false # Bei true vom gesamten Hausverbrauch abziehen (nicht doppelt zählen)
-    zero_tolerance_w: 10
-  - id: wallbox
-    name: Wallbox
-    entity: sensor.ev_charge_1_wb_chargepower
-    icon: mdi:ev-station
-    popup: '#pop-up-wallbox'
-    secondary_mode: entity
-    secondary_entity: sensor.ev_charge_1_carsoc
-    secondary_label: Fahrzeug
-    # Wird secondary_unit ausgelassen, erscheint HA unit_of_measurement automatisch.
-    secondary_unit: '%'
-    secondary_show_above_enabled: true # erst ab 500 W Ladestrom die Fahrzeug-Zusatzzeile anzeigen
-    secondary_threshold_w: 500
-    highlight_active_enabled: true # grün leuchtender Rahmen, wenn Wallbox ab 500 W lädt
-    highlight_active_color: '#50d584'
-    deduct_from_home: false # Bei true vom gesamten Hausverbrauch abziehen (nicht doppelt zählen)
-    zero_tolerance_w: 10
-  # Bis zu 3 weitere Individual-Kacheln; drei pro Zeile (Nr. 4 beginnt nächste Reihe).
-  # ACHTUNG: Ein Zwischenzähler darf nur einmal abgezogen werden,
-  # wenn er nicht bereits in einem anderen abgezogenen Zähler steckt.
+    ring_source: soc
+    use_soc_colors: true
+
 display:
-  live: true # LIVE-Anzeige oben rechts
-  info_button: true # ? oben rechts
   footer: true
-  energy_split: true # PV-/Netz-/Speicheranteile
+  energy_split: true
   fossil: true
-info:
-  title: EMH Energiefluss – Erklärung
-  show_default_guide: true # false: nur den eigenen Hilfetext anzeigen
-  description: |-
-    Hausleistung = PV + Netzbezug + Batterieentladung − Einspeisung − Batterieladung
-    − optional abgezogene Individual-Verbraucher. Der dreifarbige Hausring zeigt
-    die angenäherte Herkunft des verbleibenden Hausstroms.
+  live: true
+  info_button: true
+
+# Nur Kachelnamen und Icons, keine Sensoren:
+individual:
+  - id: individual_1
+    name: Individual 1
+    icon: mdi:washing-machine
+    secondary_mode: text
+    secondary_text: Waschgang
+  - id: individual_2
+    name: Individual 2
+    icon: mdi:car-electric
+    secondary_mode: text
+    secondary_text: Lädt
+  - id: individual_3
+    name: Individual 3
+    icon: mdi:thermometer
+    secondary_mode: text
+    secondary_text: Heizung
+  - id: individual_4
+    name: Individual 4
+    icon: mdi:snowflake
+    secondary_mode: text
+    secondary_text: Kühlung
+  - id: individual_5
+    name: Individual 5
+    icon: mdi:monitor
+    secondary_mode: text
+    secondary_text: Standby
+  - id: individual_6
+    name: Individual 6
+    icon: mdi:calendar
+    secondary_mode: text
+    secondary_text: Energie
