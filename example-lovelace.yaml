@@ -1,4 +1,4 @@
-# EMH Power Flow Card v1.0.1 – entitätsfreie Basisvorlage
+# EMH Power Flow Card v1.0.2 – entitätsfreie Basisvorlage
 # Die Screenshots in README.md zeigen die echte Card mit simulierten Demowerten.
 # Ohne eigene Home-Assistant-Sensoren werden keine Live-Leistungen angezeigt.
 # Nach dem Hinzufügen Entitäten im grafischen Editor zuweisen.

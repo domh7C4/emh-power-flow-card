@@ -1,5 +1,5 @@
 /**
- * EMH Power Flow Card v1.0.1 – independently installable Home Assistant Lovelace card.
+ * EMH Power Flow Card v1.0.2 – independently installable Home Assistant Lovelace card.
  * PV top / grid left / battery right / house center, 0..6 individual tiles below.
  * Native SVG paths; requestAnimationFrame energy particles with constant traversal time.
  * SPDX-License-Identifier: GPL-3.0-only
@@ -7,10 +7,10 @@
  */
 (() => {
   'use strict';
-  const VERSION = '1.0.1';
+  const VERSION = '1.0.2';
   const CARD = 'emh-power-flow-card';
   const EDITOR = 'emh-power-flow-card-editor';
-  console.info('[EMH] Power Flow v1.0.1 script start');
+  console.info('[EMH] Power Flow v1.0.2 script start');
   if (customElements.get(CARD)) { console.warn('[EMH] Power Flow already registered; unload older resources.'); return; }
   const SVG = 'http://www.w3.org/2000/svg';
   const T = { pv:'#f5b916', grid:'#36a5f5', battery:'#50d584', home:'#18cef2', individual:'#acbac7', warning:'#f04b54' };
@@ -24,13 +24,13 @@
     fossil:''
   };
   const NODES_DEFAULT = {
-    pv:{name:'Photovoltaik',zero_tolerance_w:10,icon:'mdi:solar-power',popup:'#pop-up-pv',ring_entity:'',ring_max_mode:'fixed',ring_max:25000,ring_max_entity:'',ring_unit:'W',color:T.pv},
-    grid:{name:'Netz',zero_tolerance_w:10,icon:'mdi:transmission-tower',popup:'#pop-up-grid',ring_entity:'',ring_max_mode:'fixed',ring_max:5000,ring_max_entity:'',ring_unit:'W',alert_entity:'',alert_threshold_mode:'fixed',alert_threshold_w:5000,alert_threshold_entity:'',alert_threshold_unit:'W',alert_from_percent:90,alert_color:T.warning,color:T.grid},
-    battery:{name:'Batterie',zero_tolerance_w:10,icon:'mdi:battery',icon_style:'horizontal',popup:'#pop-up-bat',
+    pv:{name:'PV',zero_tolerance_w:10,icon:'mdi:solar-power',popup:'#pop-up-pv',ring_entity:'',ring_max_mode:'fixed',ring_max:25000,ring_max_entity:'',ring_unit:'W',color:T.pv},
+    grid:{name:'NETZ',zero_tolerance_w:10,icon:'mdi:transmission-tower',popup:'#pop-up-grid',ring_entity:'',ring_max_mode:'fixed',ring_max:5000,ring_max_entity:'',ring_unit:'W',alert_entity:'',alert_threshold_mode:'fixed',alert_threshold_w:5000,alert_threshold_entity:'',alert_threshold_unit:'W',alert_from_percent:90,alert_color:T.warning,color:T.grid},
+    battery:{name:'BATTERIE',zero_tolerance_w:10,icon:'mdi:battery',icon_style:'horizontal',popup:'#pop-up-bat',
       ring_source:'soc',use_soc_colors:true,ring_entity:'',ring_max_mode:'fixed',ring_max:100,ring_max_entity:'',ring_unit:'%',
       power_ring_max_mode:'fixed',power_ring_max:5000,power_ring_unit:'W',power_ring_max_entity:'',power_ring_max_entity_unit:'W',
       charge_ring_color:'#17c8de',discharge_ring_color:T.battery,color:T.battery},
-    home:{name:'Haus',zero_tolerance_w:10,icon:'mdi:home',popup:'/energy',color:T.home}
+    home:{name:'HOME',zero_tolerance_w:10,icon:'mdi:home',popup:'/energy',color:T.home}
   };
   // Ohne Konfiguration wird kein Verbraucher und keine Messentität vorbelegt.
   const IND_DEFAULT = [];
@@ -247,22 +247,39 @@
     static getStubConfig(){return {type:`custom:${CARD}`,theme:'auto',entities:clone(ENTITY_DEFAULTS),individual:clone(IND_DEFAULT),animation:{style:'dots',speed:1,glow:65,max_drops:3,mobile_power_save:true,mobile_fps:25,mobile_max_particles:2},appearance:{ring_width_percent:50,transparent_background:true},display:{header:false,live:true,info_button:true,footer:true,energy_split:true,fossil:true}};}
     static getConfigElement(){return document.createElement(EDITOR);}
     _getActiveNodes(){
-      const e=this._entities;
-      // Alle zum Zweig gehörenden Haupt-Entitäten zählen, auch SOC und
-      // optionale direkte Herkunftssensoren. Reine Ring-/Warn-Einstellungen
-      // ohne Haupt-Entität aktivieren keinen Zweig.
-      const any=(...keys)=>keys.some(key=>hasEntity(e[key]));
-      const pv=any('pv','pv_to_home');
-      const grid=any('grid_import','grid_export','grid_power','grid_to_home');
-      const battery=any('battery_charge','battery_discharge','battery_power','battery_soc','battery_to_home');
-      return {pv,grid,battery,home:any('home')||pv||grid||battery};
+      const e=this._entities, nodes=this._nodes;
+      // Ein Energiezweig ist aktiv, sobald irgendeine zugehörige gültige
+      // Entität konfiguriert ist. Das umfasst neben Leistungs- und SOC-Werten
+      // auch zusätzliche Ring-, Schwellenwert- und Status-Entitäten. Reine
+      // Namen, Icons, Farben, Zahlenwerte oder Legacy nodes.*.show werden
+      // ausdrücklich NICHT als Aktivierung interpretiert.
+      const sourceKeys={
+        pv:['pv','pv_to_home'],
+        grid:['grid_import','grid_export','grid_power','grid_to_home'],
+        battery:['battery_charge','battery_discharge','battery_power','battery_soc','battery_to_home']
+      };
+      const nodeKeys={
+        pv:['ring_entity','ring_max_entity','secondary_entity'],
+        grid:['ring_entity','ring_max_entity','secondary_entity','alert_entity','alert_threshold_entity'],
+        battery:['ring_entity','ring_max_entity','power_ring_max_entity','secondary_entity']
+      };
+      const active={};
+      for(const id of ['pv','grid','battery']){
+        active[id]=sourceKeys[id].some(key=>hasEntity(e[key]))||
+          nodeKeys[id].some(key=>hasEntity(nodes[id]?.[key]));
+      }
+      // HOME benötigt entweder einen direkten Hauswert oder mindestens eine
+      // konfigurierte Quelle; ohne alle Entitäten verschwindet der SVG-Flow.
+      active.home=hasEntity(e.home)||hasEntity(nodes.home?.secondary_entity)||
+        active.pv||active.grid||active.battery;
+      return active;
     }
     setConfig(cfg){
       if(!cfg||typeof cfg!=='object')throw new Error('EMH Power Flow: Konfiguration fehlt.');
       this._config=clone(cfg);
       this._entities={...ENTITY_DEFAULTS,...(cfg.entities||{})};
-      this._active=this._getActiveNodes();
       this._nodes={};for(const key of Object.keys(NODES_DEFAULT))this._nodes[key]={...NODES_DEFAULT[key],...(cfg.nodes?.[key]||{})};
+      this._active=this._getActiveNodes();
       this._individual=normalizeIndividuals(cfg.individual);
       this._stop();this._render();this._update();this._start();
     }
@@ -291,12 +308,12 @@
         ${(dis.live!==false||dis.info_button!==false)?`<div class="head-actions floating">${dis.live===false?'':`<div class="status"><i></i><span data-status>LIVE</span></div>`}${dis.info_button===false?'':`<button type="button" class="help-button" data-help-toggle aria-label="Informationen zur EMH Power Flow Card" aria-controls="emh-help-panel" aria-expanded="false">?</button>`}</div>`:''}
         ${dis.info_button===false?'':`<section class="help-panel" id="emh-help-panel" role="dialog" aria-label="Hilfe zur EMH Power Flow Card" hidden><div class="help-title"><span>${esc(cfg.info?.title||'EMH Energiefluss – Erklärung')}</span><button class="help-close" type="button" data-help-close aria-label="Hilfe schließen">×</button></div><p class="help-description">${esc(cfg.info?.description||'Diese Karte zeigt die aktuellen Leistungsflüsse zwischen Photovoltaik, Netz, Batteriespeicher und Haus.')}</p>${cfg.info?.show_default_guide===false?'':`<ul><li><strong>PV (Gelb):</strong> Leistungserzeugung; der Füllring bezieht sich auf das eingestellte 100-%-Maximum.</li><li><strong>Netz (Blau):</strong> Bezug oder Einspeisung; der Ring wird an der konfigurierten Warnschwelle rot.</li><li><strong>Batterie (konfigurierte Ringfarbe):</strong> SOC-Ring oder richtungsabhängiger Leistungsring (Laden / Entladen).</li><li><strong>Haus:</strong> PV + Netzbezug + Batterieentladung − Netzeinspeisung − Batterieladung − ausgewählte Individual-Verbraucher. Gelb/Blau/Grün sind geschätzte Herkunftsanteile.</li><li><strong>Animation:</strong> Lichtpunkte, Kometen, Impulse oder Striche laufen mit konstanter eingestellter Geschwindigkeit und stoppen unter der Nulltoleranz.</li><li><strong>Individual:</strong> Bis zu sechs Verbraucher/Erzeuger in drei Spalten mit frei wählbarer Zusatzzeile.</li></ul><p>Die Hausring-Anteile sind ohne direkte Herkunftsmessung eine Näherung. Nulltoleranzwerte betreffen nur die Anzeige; die Hausbilanz verwendet Rohmessungen. Individual-Abzüge nicht doppelt zählen. Die Netz-Warnung begrenzt keine Leistung.</p>`}</section>`}
         ${this._active.home?`<div class="diagram-wrap">${svgMarkup('desktop',this._nodes,this._active)}${svgMarkup('mobile',this._nodes,this._active)}</div>`:''}
-        ${count?`<div class="individuals" data-mobile-bottom-row="${count<=3}">${individuals.map(individualCard).join('')}</div>`:''}
+        ${count?`<div class="individuals" data-mobile-bottom-row="${count<=3&&this._active.home}">${individuals.map(individualCard).join('')}</div>`:''}
         ${dis.footer===false?'':`<footer class="foot">${dis.energy_split===false?'':`<span data-energy-split>PV – · Netz – · Speicher –</span>`}${dis.fossil===false?'':`<span data-fossil></span>`}</footer>`}
       </ha-card>`;
       const card=this.shadowRoot.querySelector('ha-card');
-      card.dataset.mobileFlowLower=String(count>=1&&count<=3);
-      if(count>=1&&count<=3){
+      card.dataset.mobileFlowLower=String(count>=1&&count<=3&&this._active.home);
+      if(count>=1&&count<=3&&this._active.home){
         const tile=this.shadowRoot.querySelector('.individuals .device');
         if(tile){
           const setOffset=()=>{
@@ -860,7 +877,7 @@
           ${this._field('Mobil: Bilder pro Sekunde (10–60)','animation.mobile_fps',c.animation?.mobile_fps??25,{number:true})}
           ${this._field('Mobil: Maximale Partikel (1–5)','animation.mobile_max_particles',c.animation?.mobile_max_particles??2,{number:true})}
         </div></details>
-        <details data-section="entities"><summary>Haupt-Kacheln</summary><div class="in fields"><p class="note" style="grid-column:1/-1">PV, NETZ und BATTERIE erscheinen automatisch, sobald mindestens eine zugehörige Entität ausgewählt ist. Sind sämtliche Entitäten eines Zweigs leer, wird der Zweig inklusive Verbindung ausgeblendet. HOME erscheint bei mindestens einer konfigurierten Energiequelle oder einem eigenen Hausverbrauchssensor.</p>
+        <details data-section="entities"><summary>Haupt-Kacheln</summary><div class="in fields"><p class="note" style="grid-column:1/-1">PV, NETZ und BATTERIE erscheinen automatisch, sobald mindestens eine zugehörige Entität ausgewählt ist (einschließlich Ring-, Warn- und Zusatz-Entitäten). Sind sämtliche Entitäten eines Zweigs leer, wird dieser inklusive Verbindung und Animation ausgeblendet. HOME erscheint bei einer konfigurierten Energiequelle oder einem eigenen Hausverbrauchssensor. Die alten Knoten-Anzeigen-Schalter sind nicht mehr erforderlich.</p>
           ${this._field('Netz – Leistungsquelle',`entities.grid_mode`,entity.grid_mode||'separate',{wide:true,options:[['separate','Getrennte Entitäten Bezug + Einspeisung'],['signed','Eine vorzeichenbehaftete Entität']]})}
           ${this._field('Batterie – Leistungsquelle',`entities.battery_mode`,entity.battery_mode||'separate',{wide:true,options:[['separate','Getrennte Entitäten Laden + Entladen'],['signed','Eine vorzeichenbehaftete Entität']]})}
           ${entityRows.filter(([key])=>{
