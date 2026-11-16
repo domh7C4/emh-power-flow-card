@@ -1,4 +1,4 @@
-# EMH Power Flow Card v1.0.3 – entitätsfreie Basisvorlage
+# EMH Power Flow Card v1.0.2 – entitätsfreie Basisvorlage
 # Die Screenshots in README.md zeigen die echte Card mit simulierten Demowerten.
 # Ohne eigene Home-Assistant-Sensoren werden keine Live-Leistungen angezeigt.
 # Nach dem Hinzufügen Entitäten im grafischen Editor zuweisen.
@@ -10,16 +10,6 @@ min_flow_w: 0
 appearance:
   transparent_background: true
   ring_width_percent: 50
-
-# Optional: EMH Smart Sync einschalten. Bei bestehenden Karten ist
-# Live-Modus ohne sync-Abschnitt weiterhin der Standard.
-sync:
-  mode: smart
-  window_ms: 5000
-  smoothing_ms: 2000
-  tolerance_w: 30
-  sensor_timeout_s: 15
-  include_individual: true
 
 animation:
   style: dots

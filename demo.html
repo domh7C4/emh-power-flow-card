@@ -28,7 +28,7 @@
 <option value="empty">Keine Entitäten (alle Zweige ausgeblendet)</option>
 </select><span class="small">Alle Werte sind fiktiv.</span></section>
 <div id="preview"></div>
-<div class="note">Echte Card v1.0.3 · Beispielwerte und Sensorzustände sind lokal simuliert und stellen keine realen Messungen dar.</div>
+<div class="note">Echte Card v1.0.2 · Beispielwerte und Sensorzustände sind lokal simuliert und stellen keine realen Messungen dar.</div>
 </main>
 <script src="emh-power-flow-card.js"></script>
 <script>
@@ -48,7 +48,7 @@ const SENSORS = {
   'sensor.demo_ind5': [328,'W'],
   'sensor.demo_ind6': [240,'W']
 };
-const states = Object.fromEntries(Object.entries(SENSORS).map(([entity_id,[state,unit]])=>[entity_id,{entity_id,state:String(state),last_updated:new Date().toISOString(),attributes:{unit_of_measurement:unit}}]));
+const states = Object.fromEntries(Object.entries(SENSORS).map(([entity_id,[state,unit]])=>[entity_id,{entity_id,state:String(state),attributes:{unit_of_measurement:unit}}]));
 const individuals = [
   {id:'individual-1',name:'Individual 1',entity:'sensor.demo_ind1',icon:'mdi:home-floor-2',secondary_mode:'text',secondary_text:'Waschgang · 38 °C'},
   {id:'individual-2',name:'Individual 2',entity:'sensor.demo_ind2',icon:'mdi:ev-station',secondary_mode:'text',secondary_text:'Lädt · 76 %'},
@@ -67,7 +67,6 @@ function configFor(mode){
   const base={type:'custom:emh-power-flow-card',theme:'light',min_flow_w:0,
     appearance:{transparent_background:true,ring_width_percent:50},
     nodes:{pv:{ring_max:5000},grid:{ring_max:5000},battery:{ring_source:'soc',use_soc_colors:true}},
-    sync:{mode:'smart',window_ms:5000,smoothing_ms:2000,tolerance_w:30,sensor_timeout_s:15,include_individual:true},
     animation:{style:'dots',speed:1,glow:50,max_drops:3,mobile_power_save:true,mobile_fps:25,mobile_max_particles:2},
     display:{header:false,live:true,info_button:true,footer:true,energy_split:true,fossil:true}}
   const branches={
