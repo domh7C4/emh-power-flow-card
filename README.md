@@ -1,9 +1,10 @@
 # EMH Power Flow Card
 
-[![Version](https://img.shields.io/badge/Version-1.0.1-00b7c8)](./CHANGELOG.md)
+[![Version](https://img.shields.io/badge/Version-1.0.3-00b7c8)](./CHANGELOG.md)
 [![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](LICENSE)
 [![Home Assistant](https://img.shields.io/badge/Home_Assistant-Lovelace-41BDF5?logo=homeassistant&logoColor=white)](https://www.home-assistant.io/)
-[![Sponsor via PayPal](https://img.shields.io/badge/PayPal-Projekt%20unterst%C3%BCtzen-00457C?logo=paypal&logoColor=white)](https://www.paypal.me/domh7C4)
+[![PayPal.Me](https://img.shields.io/badge/PayPal.Me-domh7C4-00457C?logo=paypal&logoColor=white)](https://paypal.me/domh7C4)
+
 
 **Visualisierung des Energieflusses in Home Assistant – für Photovoltaik, Stromnetz, Batteriespeicher, Haus und bis zu sechs individuelle Verbraucher.**
 
@@ -15,11 +16,11 @@ Die folgenden Bilder wurden **direkt aus dem originalen JavaScript der EMH Power
 
 ### Desktop – sechs Individual-Kacheln
 
-![Echte EMH Power Flow Card im Browser, Desktop mit Individual 1 bis 6](assets/real-desktop.png)
+![Echte EMH Power Flow Card im Browser, Desktop mit Individual 1 bis 6](assets/real-desktop-sync.png)
 
 ### Mobil – sechs Individual-Kacheln
 
-![Echte EMH Power Flow Card im Browser, Mobil mit Individual 1 bis 6](assets/real-mobile.png)
+![Echte EMH Power Flow Card im Browser, Mobil mit Individual 1 bis 6](assets/real-mobile-sync.png)
 
 <details>
 <summary>Mobil – drei Individual-Kacheln und automatische Anordnung</summary>
@@ -48,6 +49,29 @@ Die folgenden Bilder wurden **direkt aus dem originalen JavaScript der EMH Power
 
 **[Interaktive Offline-Demo](demo.html):** `demo.html` gemeinsam mit `emh-power-flow-card.js` herunterladen bzw. aus dem Repository-ZIP entpacken und im Browser öffnen. Du kannst zwischen sechs, drei oder vier Individual-Kacheln, einzelnen Energiequellen und einer komplett leeren Konfiguration umschalten. Es ist kein Home-Assistant-Zugang erforderlich.
 
+## EMH Smart Sync – zeitlich passende Leistungswerte
+
+Unter **Allgemeines → EMH Smart Sync** (im grafischen Editor als eigener Einstellungsbereich) kann der Abgleich aktiviert werden. Es stehen **AUS (Live)**, **SYNC (Zeitabgleich)** und **SMART SYNC (Zeitabgleich mit Glättung)** zur Auswahl.
+
+```yaml
+sync:
+  mode: smart
+  window_ms: 5000
+  smoothing_ms: 2000
+  tolerance_w: 30
+  sensor_timeout_s: 15
+  include_individual: true
+```
+
+- **5 Sekunden Zeitfenster:** Zugeordnete Haupt-Leistungsentitäten werden nur gemeinsam übernommen, wenn ihre Messzeitpunkte höchstens fünf Sekunden auseinanderliegen. Nach einer einzelnen Änderung wartet die Card auf die übrigen Sensoren, maximal das konfigurierte Fenster; eine nicht mehr plausible Gruppe wird nicht künstlich passend gerechnet.
+- **2 Sekunden Glättung:** Im Modus `smart` werden nur Leistungswerte geglättet. Der Hausverbrauch und die Herkunftsanteile werden aus denselben synchronisierten Leistungswerten berechnet. SOC, Temperaturen und andere Zusatzwerte werden nicht geglättet.
+- **30 W Toleranz:** Nur wenn ein eigenständiger Sensor für `entities.home` vorhanden ist, vergleicht die Card diesen mit der aus PV, Netz und Batterie berechneten Hausleistung. Ohne unabhängigen Hauswert ist die physikalische Bilanzabweichung **nicht überprüfbar**. Es erfolgt keine automatische Korrektur der Messwerte.
+- **15 Sekunden Timeout:** Veraltete oder nicht verfügbare Messwerte werden nicht dauerhaft als aktuelle Leistungen weiterverwendet; die Hauptanzeige zeigt bei unvollständigem Datensatz keine erfundenen Werte. Langsam aktualisierende Sensoren benötigen ggf. einen höheren Timeout.
+- **Bis zu sechs Individual-Kacheln:** Ihre Hauptleistungen erhalten einen eigenen zeitlichen Abgleich mit Glättung. Ein veralteter Individual-Sensor zeigt keinen gültigen Hauptleistungswert mehr an, blockiert jedoch andere Verbraucher und die Hauptquellen **nicht**. Eine ausdrücklich aktivierte Individual-Abzugsberechnung benötigt weiterhin einen gültigen Wert dieser Kachel. Zusätzliche Temperatur-, SOC- und Zustandsentitäten bleiben ungeglättet.
+- **Abwärtskompatibilität:** `mode: off` ist der Standard, wenn `sync` fehlt. Bestehende Karten bleiben auf ihrer bisherigen Live-Aktualisierung.
+
+**Hinweis:** Smart Sync verbessert die zeitliche Konsistenz der Anzeige. Die Card verändert keine Home-Assistant-Sensorwerte und ersetzt keine physikalisch synchronisierte Messanlage. Die Statusprüfung wird bei neuen Home-Assistant-Zuständen durchgeführt.
+
 ## Funktionen im Überblick
 
 - **Vier Haupt-Kacheln:** PV oben, Netz links, Batteriespeicher rechts, Haus in der Mitte. Runde Kacheln mit konfigurierbaren Außenringen und Statuszeilen. Nicht konfigurierte Energiezweige werden automatisch ausgeblendet; ein manueller Schalter „Knoten deaktivieren“ ist nicht notwendig.
@@ -56,6 +80,8 @@ Die folgenden Bilder wurden **direkt aus dem originalen JavaScript der EMH Power
 - **Netzlastwarnung:** Der Netzring wechselt ab einer konfigurierbaren Lastschwelle auf eine frei einstellbare Warnfarbe.
 - **Batterieanzeige:** Ladezustand (SOC) neben dem Batteriesymbol, dynamische Symbolfüllung, optional SOC-abhängige Symbol-/Textfarbe. Die äußere Ringfarbe bleibt separat einstellbar.
 - **Auslastungsringe:** Ringwert und Höchstwert wahlweise fest oder über Entitäten, Auswahl zwischen Leistungs- und SOC-Ring für den Speicher sowie einstellbare Ringbreite.
+- **Smart Sync (optional):** Zeitlicher Abgleich der Hauptleistungswerte mit 5 Sekunden Synchronisierungsfenster, 2 Sekunden Glättung und 30 W Bilanz-Toleranz. Individual-Verbraucher werden getrennt synchronisiert und blockieren bei Ausfall nicht die Hauptbilanz. Statusanzeige `SYNC`, `WARTET`, `VERALTET` oder `ABWEICHUNG` (bei vorhandenem unabhängigen Hausverbrauchssensor). Ohne Sync-Konfiguration bleibt das bisherige Live-Verhalten aktiv.
+- **Individual-Symbole:** Um 10 % vergrößerte Icons auf Desktop und Mobilgeräten, ohne das Raster zu verändern.
 - **Animierter Energiefluss:** Lichtpunkte, Kometen, Impulse oder fließende Striche; Richtungsanzeige für Netz und Batterie. Geschwindigkeit unabhängig von der aktuellen Leistung.
 - **Bis zu sechs Individual-Kacheln:** Drei pro Reihe; mobil erscheinen 1–3 Kacheln in der unteren Rasterzeile, ab 4 Kacheln in zwei Zeilen; je Kachel Haupt-Entität, Bezeichnung, Symbol, Zusatzzeile, Einheit, Schwellwerte, Aktiv-Hervorhebung, Multiplikator, Erzeuger-Modus und Navigation.
 - **Status und Informationen:** LIVE-/Teilstatus und Hilfe-Button rechts oben. Unter der Grafik optionale Fußzeile mit Energieanteilen und dem fossilen Stromanteil.
@@ -98,7 +124,7 @@ HACS → **Benutzerdefinierte Repositories** → öffentliche GitHub-URL eingebe
 2. Unter **Einstellungen → Dashboards → Ressourcen** diese **JavaScript-Modul**-Ressource anlegen:
 
    ```text
-   /local/emh-power-flow-card.js?v=1.0.1
+   /local/emh-power-flow-card.js?v=1.0.3
    ```
 
 3. Das Dashboard vollständig neu laden; bei Problemen mit der Companion-App den Frontend-Cache leeren.
@@ -150,6 +176,18 @@ display:
 ```
 
 Die Haupt-Kacheln **PV, NETZ, BATTERIE und HOME** erscheinen automatisch, sobald passende Entitäten ausgewählt sind. Wenn ein Zweig keinerlei zugehörige Entität hat, werden Kachel, Verbindung und Animation ausgeblendet. Der HOME-Knoten erscheint, sobald mindestens eine Quelle oder ein direkter Haussensor konfiguriert ist. Für die Individual-Kacheln erfolgt die Zuordnung jeweils über **Haupt-Entität**. Alle nicht angegebenen Konfigurationsfelder verwenden die Standardwerte der Card.
+
+
+### Automatische Sichtbarkeit der Haupt-Kacheln
+
+Die runden Haupt-Kacheln heißen im Editor **PV**, **NETZ**, **BATTERIE** und **HOME**. Es gibt **keine manuelle Knoten-deaktivieren-Option** mehr.
+
+- **PV:** sichtbar, wenn mindestens eine Entität für PV-Leistung, PV→Haus, Ringwert, Ringmaximum oder Zusatzzeile gesetzt ist.
+- **NETZ:** sichtbar, wenn mindestens eine Entität für Netzbezug, Einspeisung, vorzeichenbehaftete Netzleistung, Netz→Haus, Ring, Warnung oder Zusatzzeile gesetzt ist.
+- **BATTERIE:** sichtbar, wenn mindestens eine Entität für Ladung, Entladung, vorzeichenbehaftete Batterieleistung, Batterie-SOC, Batterie→Haus, Ring, Ringmaximum oder Zusatzzeile gesetzt ist.
+- **HOME:** sichtbar, sobald ein Hausverbrauchssensor oder mindestens einer der drei Energiezweige konfiguriert ist.
+
+Ohne zugehörige Entitäten verschwindet der komplette Zweig **einschließlich Kreis, Ring, Verbindung und Animation**, auch wenn Name, Symbol, Farbe oder ein alter `show`-Wert noch eingetragen sind. Nicht konfigurierte Leistungsquellen werden für die Hausbilanz mit 0 W behandelt; eine konfigurierte, aber ausgefallene Entität bleibt hingegen als fehlender Messwert erkennbar. Der optionale Sensor für den fossilen Stromanteil steuert ausschließlich die Fußzeile.
 
 ## Entitäten und Leistungsquellen
 
@@ -407,11 +445,11 @@ Die Karte ersetzt keine Popup-Integration. Hash-Navigation hängt davon ab, wie 
 
 Der Quellcode ist unter der **GNU General Public License, Version 3 (GPL-3.0-only)** veröffentlicht. Die Lizenzbedingungen stehen in [LICENSE](LICENSE). Weitergabe und Änderung sind im Rahmen dieser Lizenz erlaubt; für weitergegebene abgeleitete Werke gelten die GPL-Vorgaben.
 
-## Unterstützung / Sponsor
+EMH Power Flow Card kann kostenlos verwendet werden. Wenn dir die Entwicklung hilft, kannst du sie freiwillig unterstützen:
 
-Wenn dir dieses Projekt hilft, kannst du die Weiterentwicklung freiwillig unterstützen:
+[![PayPal.Me](https://img.shields.io/badge/PayPal.Me-domh7C4-00457C?logo=paypal&logoColor=white)](https://paypal.me/domh7C4)
 
-[![PayPal](https://img.shields.io/badge/PayPal-Spenden-00457C?logo=paypal&logoColor=white)](https://www.paypal.me/domh7C4)
+Eine Spende ist **keine Voraussetzung** für die Verwendung. Der Spendenlink muss vor dem Veröffentlichen einem aktiven Profil zugeordnet sein.
 
 Die Installationsschritte für dein öffentliches Repository, den direkten Marketplace-Badge und den GitHub-Release-Workflow findest du in [PUBLISHING.md](PUBLISHING.md).
 

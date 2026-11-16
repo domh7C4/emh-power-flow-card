@@ -1,5 +1,5 @@
 /**
- * EMH Power Flow Card v1.0.2 – independently installable Home Assistant Lovelace card.
+ * EMH Power Flow Card v1.0.3 – independently installable Home Assistant Lovelace card.
  * PV top / grid left / battery right / house center, 0..6 individual tiles below.
  * Native SVG paths; requestAnimationFrame energy particles with constant traversal time.
  * SPDX-License-Identifier: GPL-3.0-only
@@ -7,10 +7,10 @@
  */
 (() => {
   'use strict';
-  const VERSION = '1.0.2';
+  const VERSION = '1.0.3';
   const CARD = 'emh-power-flow-card';
   const EDITOR = 'emh-power-flow-card-editor';
-  console.info('[EMH] Power Flow v1.0.2 script start');
+  console.info('[EMH] Power Flow v1.0.3 script start');
   if (customElements.get(CARD)) { console.warn('[EMH] Power Flow already registered; unload older resources.'); return; }
   const SVG = 'http://www.w3.org/2000/svg';
   const T = { pv:'#f5b916', grid:'#36a5f5', battery:'#50d584', home:'#18cef2', individual:'#acbac7', warning:'#f04b54' };
@@ -34,6 +34,9 @@
   };
   // Ohne Konfiguration wird kein Verbraucher und keine Messentität vorbelegt.
   const IND_DEFAULT = [];
+  const SYNC_DEFAULTS={mode:'off',window_ms:5000,smoothing_ms:2000,tolerance_w:30,sensor_timeout_s:15,include_individual:true};
+  // Stabile Schlüssel für dieselbe Leistungsquelle einschließlich Einheitenüberschreibung.
+  const powerRefKey=(ref,unit='W')=>JSON.stringify([typeof ref==='string'?{entity:ref}:ref||null,unit]);
   const ICONS = {
     'solar-power':'<circle cx="14" cy="10" r="5"/><path d="M14 1v3M14 17v3M5 10h3M20 10h3M7 3l2 2M19 15l2 2M21 3l-2 2M9 15l-2 2M3 26h22M7 22h14M12 17l-3 9M16 17l3 9"/>',
     'transmission-tower':'<path d="M10 2h8M9 9h10M6 16h16M14 2l-10 24M14 2l10 24M7 26h14M9 9l10 7M19 9L9 16"/>',
@@ -187,7 +190,8 @@
     .circle-shadow{fill:var(--emh-panel);filter:drop-shadow(0 6px 13px rgba(0,0,0,.18))}.circle-panel{fill:var(--emh-panel)}.ring-track{fill:none;stroke:var(--emh-ring-track);stroke-width:var(--emh-ring-track-width,2.8)}.progress-ring{fill:none;stroke:var(--node-color);stroke-width:var(--emh-ring-progress-width,3.15);stroke-linecap:butt;stroke-dashoffset:0;transition:stroke-dasharray .55s ease,stroke .35s ease}.home-ring-segment{fill:none;stroke-width:var(--emh-ring-home-width,3.5);stroke-linecap:butt;transition:stroke .35s ease}
     .progress-ring{filter:drop-shadow(0 0 2.5px var(--node-color))}.home-ring-segment{stroke-linecap:butt;stroke-width:var(--emh-ring-home-width,3.5);filter:drop-shadow(0 0 2px currentColor)}.home-ring-segment[data-home-segment="pv"]{stroke:${T.pv};filter:drop-shadow(0 0 2px ${T.pv})}.home-ring-segment[data-home-segment="grid"]{stroke:${T.grid};filter:drop-shadow(0 0 2px ${T.grid})}.home-ring-segment[data-home-segment="battery"]{stroke:${T.battery};filter:drop-shadow(0 0 2px ${T.battery})}
     .core-node{cursor:pointer;outline:none}.core-node:hover .circle-panel,.core-node:focus-visible .circle-panel{stroke:var(--node-color);stroke-width:2}.core-icon{color:var(--node-color)}.core-icon ha-icon{--mdc-icon-size:28px;color:var(--node-color)}.core-label{fill:var(--node-color);font-weight:750;font-size:18px}.battery-heading .battery-soc-label{fill:var(--battery-soc-color);font-size:19px;font-weight:750;font-variant-numeric:tabular-nums}.battery-heading .battery-icon{color:var(--battery-soc-color)}.battery-heading .battery-icon ha-icon{color:var(--battery-soc-color)}.core-value{fill:var(--emh-text);font-weight:780;font-variant-numeric:tabular-nums;font-size:23px}.core-sub{fill:var(--emh-muted);font-size:12.5px}.core-house .core-value{font-size:28px}.core-house .core-sub{font-size:13.5px}
-    .individuals{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;padding:0 18px 11px}.device{position:relative;cursor:pointer;min-width:0;padding:9px 7px 8px;border-radius:12px;text-align:center;background:var(--emh-surface);border:1px solid var(--emh-border);box-shadow:0 5px 13px rgba(0,0,0,.06);transition:transform .2s,border-color .2s}.device:hover,.device:focus-visible{transform:translateY(-2px);border-color:#59bddb;outline:none}.device-icon{display:flex;justify-content:center;color:var(--emh-muted);height:20px}.device-icon svg{height:20px;width:20px}.device-icon ha-icon{--mdc-icon-size:20px}.device-name{font-size:10px;color:var(--emh-muted);font-weight:620;margin-top:4px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.device-value{font-size:19px;font-weight:790;color:var(--emh-text);margin-top:4px;white-space:nowrap;font-variant-numeric:tabular-nums}.device-secondary{font-size:9px;color:var(--emh-muted);min-height:12px;margin-top:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;display:inline-block;max-width:100%}.device-secondary[data-secondary-kind="entity"],.device-secondary[data-secondary-kind="state"]{background:var(--emh-secondary-bg);box-shadow:0 2px 5px var(--emh-secondary-shadow);border-radius:6px;padding:2px 6px;color:var(--emh-text)}
+    .individuals{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;padding:0 18px 11px}.device{position:relative;cursor:pointer;min-width:0;padding:9px 7px 8px;border-radius:12px;text-align:center;background:var(--emh-surface);border:1px solid var(--emh-border);box-shadow:0 5px 13px rgba(0,0,0,.06);transition:transform .2s,border-color .2s}.device:hover,.device:focus-visible{transform:translateY(-2px);border-color:#59bddb;outline:none}.device-icon{display:flex;justify-content:center;color:var(--emh-muted);height:22px}.device-icon svg{height:22px;width:22px}.device-icon ha-icon{--mdc-icon-size:22px}.device-name{font-size:10px;color:var(--emh-muted);font-weight:620;margin-top:4px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.device-value{font-size:19px;font-weight:790;color:var(--emh-text);margin-top:4px;white-space:nowrap;font-variant-numeric:tabular-nums}.device-secondary{font-size:9px;color:var(--emh-muted);min-height:12px;margin-top:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;display:inline-block;max-width:100%}.device-secondary[data-secondary-kind="entity"],.device-secondary[data-secondary-kind="state"]{background:var(--emh-secondary-bg);box-shadow:0 2px 5px var(--emh-secondary-shadow);border-radius:6px;padding:2px 6px;color:var(--emh-text)}
+    .device[data-sync-stale="true"] .device-value{opacity:.55}
     .device[data-active="true"]{
       border-color:var(--device-active-color,#50d584);
       box-shadow:0 0 0 1px color-mix(in srgb,var(--device-active-color,#50d584) 36%,transparent),0 0 16px color-mix(in srgb,var(--device-active-color,#50d584) 48%,transparent),0 6px 15px rgba(0,0,0,.12);
@@ -200,7 +204,7 @@
        A flex column keeps secondary labels and their badges inside the tile. */
     @media(min-width:751px){.device{display:flex;flex-direction:column;align-items:center;min-height:116px;padding-bottom:13px}.device-secondary{display:block;flex-shrink:0;line-height:1.4;margin-top:5px}}
     /* Mobile: move the whole SVG and following tiles exactly 30px downward. */
-    @media(max-width:750px){ha-card{display:block}.head{padding:12px 11px 0}.heading h3{font-size:15px}.heading p{font-size:8px}.emh-mark{height:32px;width:32px;font-size:12px}.status{font-size:10px;padding:5px 9px}.diagram-wrap{padding:30px 2px 0}.energy-diagram.desktop{display:none}.energy-diagram.mobile{display:block}.mobile .core-label{font-size:17px}.mobile .battery-soc-label{font-size:18px}.mobile .core-value{font-size:21px}.mobile .core-sub{font-size:12px}.mobile .core-house .core-value{font-size:25px}.individuals{grid-template-columns:repeat(3,minmax(0,1fr));gap:6px;padding:0 7px 8px}.device{border-radius:10px;padding:6px 3px 6px}.device-icon{height:18px}.device-icon svg{height:18px;width:18px}.device-icon ha-icon{--mdc-icon-size:18px}.device-name{font-size:9.5px;margin-top:3px;max-width:100%}.device-value{font-size:18px;margin-top:3px;letter-spacing:-.3px}.device-secondary{font-size:8.5px;margin-top:2px}.foot{margin:0 10px;padding:7px 0 10px;font-size:9px}}
+    @media(max-width:750px){ha-card{display:block}.head{padding:12px 11px 0}.heading h3{font-size:15px}.heading p{font-size:8px}.emh-mark{height:32px;width:32px;font-size:12px}.status{font-size:10px;padding:5px 9px}.diagram-wrap{padding:30px 2px 0}.energy-diagram.desktop{display:none}.energy-diagram.mobile{display:block}.mobile .core-label{font-size:17px}.mobile .battery-soc-label{font-size:18px}.mobile .core-value{font-size:21px}.mobile .core-sub{font-size:12px}.mobile .core-house .core-value{font-size:25px}.individuals{grid-template-columns:repeat(3,minmax(0,1fr));gap:6px;padding:0 7px 8px}.device{border-radius:10px;padding:6px 3px 6px}.device-icon{height:20px}.device-icon svg{height:19.8px;width:19.8px}.device-icon ha-icon{--mdc-icon-size:19.8px}.device-name{font-size:9.5px;margin-top:3px;max-width:100%}.device-value{font-size:18px;margin-top:3px;letter-spacing:-.3px}.device-secondary{font-size:8.5px;margin-top:2px}.foot{margin:0 10px;padding:7px 0 10px;font-size:9px}}
     /* Mobile: With 1–3 visible individual tiles, place them in grid row 2,
        exactly where items 4–6 would be when both rows are present.
        A pseudo grid item occupies row 1; equally sized auto rows keep the
@@ -224,7 +228,7 @@
   function individualCard(item) {
     const fallback='mdi:power-plug';
     return `<div class="device" data-target="${esc(item.id)}" tabindex="0" role="button" aria-label="${esc(item.name)}">
-      <div class="device-icon"><svg xmlns="${SVG}" viewBox="0 0 28 28" width="25" height="25">${icon(item.icon||fallback)}</svg></div>
+      <div class="device-icon"><svg xmlns="${SVG}" viewBox="0 0 28 28" width="27.5" height="27.5">${icon(item.icon||fallback)}</svg></div>
       <div class="device-name">${esc(item.name)}</div>
       <div class="device-value" data-device-value="${esc(item.id)}">–</div>
       <div class="device-secondary" data-secondary-kind="${esc(item.secondary_mode || (item.secondary_entity?'entity':'text'))}" data-device-secondary="${esc(item.id)}">&nbsp;</div>
@@ -236,6 +240,8 @@
       super();this.attachShadow({mode:'open'});this._config={};this._hass=null;this._nodes=clone(NODES_DEFAULT);
       this._entities={...ENTITY_DEFAULTS};this._active=this._getActiveNodes();this._individual=normalizeIndividuals();this._rendered=false;
       this._raf=0;this._lastFrame=0;this._lastPaint=0;this._routes=[];this._motion=true;this._inView=true;
+      this._syncState={samples:new Map(),frame:new Map(),smoothed:new Map(),individual:new Map(),optional:new Map(),signature:'',frameAt:0,pendingAt:0,committed:new Map(),status:'LIVE',deviation:null};
+      this._syncFrame=null;
       this._mobileMedia=window.matchMedia('(max-width:750px)');
       this._reduceMotion=window.matchMedia('(prefers-reduced-motion: reduce)');
       this._click=ev=>{if(ev.target.closest?.('[data-help-toggle]')){this._toggleHelp();return;}if(ev.target.closest?.('[data-help-close]')){this._toggleHelp(false);return;}const target=ev.target.closest?.('[data-target]');if(target)this._navigate(target.dataset.target);};
@@ -244,7 +250,7 @@
       this.shadowRoot.addEventListener('keydown',this._key);
       this._visibility=()=>{this._lastFrame=0;this._lastPaint=0;if(document.hidden)this._stop();else this._start();};
     }
-    static getStubConfig(){return {type:`custom:${CARD}`,theme:'auto',entities:clone(ENTITY_DEFAULTS),individual:clone(IND_DEFAULT),animation:{style:'dots',speed:1,glow:65,max_drops:3,mobile_power_save:true,mobile_fps:25,mobile_max_particles:2},appearance:{ring_width_percent:50,transparent_background:true},display:{header:false,live:true,info_button:true,footer:true,energy_split:true,fossil:true}};}
+    static getStubConfig(){return {type:`custom:${CARD}`,theme:'auto',entities:clone(ENTITY_DEFAULTS),individual:clone(IND_DEFAULT),sync:clone(SYNC_DEFAULTS),animation:{style:'dots',speed:1,glow:65,max_drops:3,mobile_power_save:true,mobile_fps:25,mobile_max_particles:2},appearance:{ring_width_percent:50,transparent_background:true},display:{header:false,live:true,info_button:true,footer:true,energy_split:true,fossil:true}};}
     static getConfigElement(){return document.createElement(EDITOR);}
     _getActiveNodes(){
       const e=this._entities, nodes=this._nodes;
@@ -281,6 +287,9 @@
       this._nodes={};for(const key of Object.keys(NODES_DEFAULT))this._nodes[key]={...NODES_DEFAULT[key],...(cfg.nodes?.[key]||{})};
       this._active=this._getActiveNodes();
       this._individual=normalizeIndividuals(cfg.individual);
+      // Beim Konfigurationswechsel keine Messwerte aus einem alten Sensor-Set übernehmen.
+      this._syncState={samples:new Map(),frame:new Map(),smoothed:new Map(),individual:new Map(),optional:new Map(),signature:'',frameAt:0,pendingAt:0,committed:new Map(),status:'LIVE',deviation:null};
+      this._syncFrame=null;
       this._stop();this._render();this._update();this._start();
     }
     set hass(hass){this._hass=hass;if(this.isConnected){if(!this._rendered)this._render();this._update();this._start();}}
@@ -306,7 +315,7 @@
       const theme=cfg.theme||'auto';
       this.shadowRoot.innerHTML=`<style>${STYLE}</style><ha-card data-theme="${theme==='light'?'light':'dark'}" data-transparent="${cfg.appearance?.transparent_background!==false}">
         ${(dis.live!==false||dis.info_button!==false)?`<div class="head-actions floating">${dis.live===false?'':`<div class="status"><i></i><span data-status>LIVE</span></div>`}${dis.info_button===false?'':`<button type="button" class="help-button" data-help-toggle aria-label="Informationen zur EMH Power Flow Card" aria-controls="emh-help-panel" aria-expanded="false">?</button>`}</div>`:''}
-        ${dis.info_button===false?'':`<section class="help-panel" id="emh-help-panel" role="dialog" aria-label="Hilfe zur EMH Power Flow Card" hidden><div class="help-title"><span>${esc(cfg.info?.title||'EMH Energiefluss – Erklärung')}</span><button class="help-close" type="button" data-help-close aria-label="Hilfe schließen">×</button></div><p class="help-description">${esc(cfg.info?.description||'Diese Karte zeigt die aktuellen Leistungsflüsse zwischen Photovoltaik, Netz, Batteriespeicher und Haus.')}</p>${cfg.info?.show_default_guide===false?'':`<ul><li><strong>PV (Gelb):</strong> Leistungserzeugung; der Füllring bezieht sich auf das eingestellte 100-%-Maximum.</li><li><strong>Netz (Blau):</strong> Bezug oder Einspeisung; der Ring wird an der konfigurierten Warnschwelle rot.</li><li><strong>Batterie (konfigurierte Ringfarbe):</strong> SOC-Ring oder richtungsabhängiger Leistungsring (Laden / Entladen).</li><li><strong>Haus:</strong> PV + Netzbezug + Batterieentladung − Netzeinspeisung − Batterieladung − ausgewählte Individual-Verbraucher. Gelb/Blau/Grün sind geschätzte Herkunftsanteile.</li><li><strong>Animation:</strong> Lichtpunkte, Kometen, Impulse oder Striche laufen mit konstanter eingestellter Geschwindigkeit und stoppen unter der Nulltoleranz.</li><li><strong>Individual:</strong> Bis zu sechs Verbraucher/Erzeuger in drei Spalten mit frei wählbarer Zusatzzeile.</li></ul><p>Die Hausring-Anteile sind ohne direkte Herkunftsmessung eine Näherung. Nulltoleranzwerte betreffen nur die Anzeige; die Hausbilanz verwendet Rohmessungen. Individual-Abzüge nicht doppelt zählen. Die Netz-Warnung begrenzt keine Leistung.</p>`}</section>`}
+        ${dis.info_button===false?'':`<section class="help-panel" id="emh-help-panel" role="dialog" aria-label="Hilfe zur EMH Power Flow Card" hidden><div class="help-title"><span>${esc(cfg.info?.title||'EMH Energiefluss – Erklärung')}</span><button class="help-close" type="button" data-help-close aria-label="Hilfe schließen">×</button></div><p class="help-description">${esc(cfg.info?.description||'Diese Karte zeigt die aktuellen Leistungsflüsse zwischen Photovoltaik, Netz, Batteriespeicher und Haus.')}</p>${cfg.info?.show_default_guide===false?'':`<ul><li><strong>PV (Gelb):</strong> Leistungserzeugung; der Füllring bezieht sich auf das eingestellte 100-%-Maximum.</li><li><strong>Netz (Blau):</strong> Bezug oder Einspeisung; der Ring wird an der konfigurierten Warnschwelle rot.</li><li><strong>Batterie (konfigurierte Ringfarbe):</strong> SOC-Ring oder richtungsabhängiger Leistungsring (Laden / Entladen).</li><li><strong>Haus:</strong> PV + Netzbezug + Batterieentladung − Netzeinspeisung − Batterieladung − ausgewählte Individual-Verbraucher. Gelb/Blau/Grün sind geschätzte Herkunftsanteile.</li><li><strong>Smart Sync:</strong> Zeitlicher Abgleich und optionale Glättung der Leistungswerte, inklusive Individual-Kacheln.</li><li><strong>Animation:</strong> Lichtpunkte, Kometen, Impulse oder Striche laufen mit konstanter eingestellter Geschwindigkeit und stoppen unter der Nulltoleranz.</li><li><strong>Individual:</strong> Bis zu sechs Verbraucher/Erzeuger in drei Spalten mit frei wählbarer Zusatzzeile.</li></ul><p>Die Hausring-Anteile sind ohne direkte Herkunftsmessung eine Näherung. Nulltoleranzwerte betreffen nur die Anzeige; die Hausbilanz verwendet Rohmessungen. Individual-Abzüge nicht doppelt zählen. Die Netz-Warnung begrenzt keine Leistung.</p>`}</section>`}
         ${this._active.home?`<div class="diagram-wrap">${svgMarkup('desktop',this._nodes,this._active)}${svgMarkup('mobile',this._nodes,this._active)}</div>`:''}
         ${count?`<div class="individuals" data-mobile-bottom-row="${count<=3&&this._active.home}">${individuals.map(individualCard).join('')}</div>`:''}
         ${dis.footer===false?'':`<footer class="foot">${dis.energy_split===false?'':`<span data-energy-split>PV – · Netz – · Speicher –</span>`}${dis.fossil===false?'':`<span data-fossil></span>`}</footer>`}
@@ -361,6 +370,11 @@
       return typeof base==='string'?{entity:base,unit:u}:{...base,unit:u};
     }
     _readPower(ref, fallbackUnit='W'){
+      const key=powerRefKey(ref,fallbackUnit);
+      if(this._syncFrame?.has(key))return this._syncFrame.get(key);
+      return this._readPowerDirect(ref,fallbackUnit);
+    }
+    _readPowerDirect(ref, fallbackUnit='W'){
       const v=this._read(ref);
       if(v===null)return null;
       const r=typeof ref==='string'?{entity:ref}:ref;
@@ -369,6 +383,139 @@
       const state=this._hass?.states?.[r?.entity];
       const u=str(r?.unit || state?.attributes?.unit_of_measurement || fallbackUnit).trim().toLowerCase().replace(/\s/g,'');
       return v*(u==='kw'?1000:u==='mw'?1000000:1);
+    }
+    _syncOptions(){
+      const c=this._config.sync||{};
+      return {
+        mode:['off','sync','smart'].includes(c.mode)?c.mode:'off',
+        windowMs:clamp(n(c.window_ms,5000),500,30000),
+        smoothMs:clamp(n(c.smoothing_ms,2000),0,15000),
+        toleranceW:clamp(n(c.tolerance_w,30),0,10000),
+        timeoutMs:clamp(n(c.sensor_timeout_s,15),3,300)*1000,
+        includeIndividuals:c.include_individual!==false
+      };
+    }
+    _syncSample(ref,unit,now,opts){
+      const key=powerRefKey(ref,unit);
+      const obj=typeof ref==='string'?{entity:ref}:ref;
+      const state=this._hass?.states?.[obj?.entity];
+      const val=this._readPowerDirect(ref,unit);
+      const prev=this._syncState.samples.get(key);
+      // Home Assistant last_updated ist maßgeblich. Fehlt es in einem Mock,
+      // erhalten geänderte Werte einen Empfangszeitstempel. Das fortlaufende
+      // hass-Update darf einen unveränderten Sensor NICHT künstlich verjüngen.
+      const dateValue=state?.last_updated||state?.last_changed;
+      const parsed=dateValue?Date.parse(dateValue):NaN;
+      let ts=Number.isFinite(parsed)?Math.min(now,parsed):
+        (prev&&prev.value===val?prev.ts:now);
+      if(!Number.isFinite(ts))ts=now;
+      const sample={value:val,ts};
+      this._syncState.samples.set(key,sample);
+      const fresh=val!==null && ts>=now-opts.timeoutMs;
+      return {key,value:val,ts,fresh};
+    }
+    _syncSmooth(key,value,now,opts,map){
+      const previous=map.get(key);
+      const alpha=previous&&opts.smoothMs>0?1-Math.exp(-Math.max(0,now-previous.at)/opts.smoothMs):1;
+      const smooth=previous?previous.value+(value-previous.value)*alpha:value;
+      map.set(key,{value:smooth,at:now});
+      return smooth;
+    }
+    _prepareSync(){
+      this._syncFrame=null;
+      const opts=this._syncOptions(),state=this._syncState;
+      if(opts.mode==='off'){state.status='LIVE';state.deviation=null;return;}
+      const now=Date.now(),main=[],individual=[],optional=[];
+      const add=(arr,ref,unit='W')=>{
+        if(!hasEntity(ref))return;
+        const key=powerRefKey(ref,unit);
+        if(!arr.some(x=>x.key===key))arr.push({key,ref,unit});
+      };
+      add(main,this._configuredPowerRef('pv'));
+      add(main,this._configuredPowerRef('home'));
+      if(this._entities.grid_mode==='signed')add(main,this._configuredPowerRef('grid_power'));
+      else {add(main,this._configuredPowerRef('grid_import'));add(main,this._configuredPowerRef('grid_export'));}
+      if(this._entities.battery_mode==='signed')add(main,this._configuredPowerRef('battery_power'));
+      else {add(main,this._configuredPowerRef('battery_charge'));add(main,this._configuredPowerRef('battery_discharge'));}
+      // Wenn alle drei direkten Herkunftssensoren genutzt werden, müssen auch
+      // sie zum selben Haupt-Datensatz gehören, nicht zur Live-Nebenmessung.
+      if(['pv_to_home','grid_to_home','battery_to_home'].every(k=>hasEntity(this._entities[k]))){
+        for(const k of ['pv_to_home','grid_to_home','battery_to_home'])add(main,this._configuredPowerRef(k));
+      }
+      for(const item of this._individual){
+        if(item.show===false)continue;
+        const u=str(item.entity_unit||'auto');
+        const ref=u!=='auto'&&u?{entity:item.entity,unit:u}:item.entity;
+        if(opts.includeIndividuals)add(individual,ref);
+      }
+      for(const id of ['pv','grid','battery']){
+        const node=this._nodes[id];
+        add(optional,node.ring_entity,str(node.ring_value_unit||'auto')==='auto'?'W':node.ring_value_unit);
+      }
+      add(optional,this._nodes.grid?.alert_entity);
+      const seen=new Map();
+      const get=x=>{if(!seen.has(x.key))seen.set(x.key,this._syncSample(x.ref,x.unit,now,opts));return seen.get(x.key);};
+      const samples=main.map(get);
+      const allFresh=samples.every(x=>x.fresh);
+      const timestamps=samples.map(x=>x.ts);
+      const aligned=allFresh&&(!timestamps.length||Math.max(...timestamps)-Math.min(...timestamps)<=opts.windowMs);
+      const latest=Math.max(...timestamps,0);
+      const sig=samples.map(x=>`${x.key}:${x.value}:${x.ts}`).join('|');
+      const changed=samples.some(x=>{
+        const old=state.committed.get(x.key);
+        return !old||old.ts!==x.ts||old.value!==x.value;
+      });
+      const allAdvanced=samples.every(x=>{
+        const old=state.committed.get(x.key);
+        return !old||old.ts!==x.ts||old.value!==x.value;
+      });
+      if(changed&&!state.pendingAt)state.pendingAt=now;
+      // Nicht schon beim ersten einzelnen Sensorupdate einen asynchronen
+      // Werte-Mix übernehmen: Auf die anderen Quellen warten, maximal 5 s.
+      const ready=aligned&&(!state.frameAt||!changed||allAdvanced||now-state.pendingAt>=opts.windowMs);
+      if(ready && (!state.frameAt||changed)){
+        const frame=new Map();
+        for(const sample of samples){
+          const value=opts.mode==='smart'?this._syncSmooth(sample.key,sample.value,now,opts,state.smoothed):sample.value;
+          frame.set(sample.key,value);
+          state.committed.set(sample.key,{ts:sample.ts,value:sample.value});
+        }
+        state.frame=frame;state.frameAt=now;state.signature=sig;
+        state.pendingAt=0;state.status='SYNC';
+      } else if(samples.some(x=>!x.fresh))state.status='VERALTET';
+      else if(!aligned||changed)state.status='WARTET';
+      else state.status='SYNC';
+      // Veraltete Sensoren machen die Hauptbilanz unvollständig; keine
+      // alten Leistungen als neue Messung ausgeben.
+      const frameValid=state.frameAt&&now-state.frameAt<=opts.timeoutMs&&allFresh;
+      const result=new Map();
+      for(const sample of samples)result.set(sample.key,frameValid?state.frame.get(sample.key)??null:null);
+      // Individual-Leistungen werden unabhängig aktualisiert und blockieren
+      // selbst bei einem defekten Sensor niemals die Haupt-Energiebilanz.
+      for(const item of individual){
+        const sample=get(item);
+        if(!sample.fresh){result.set(item.key,null);continue;}
+        const prev=state.individual.get(item.key);
+        if(!prev||prev.sourceTs!==sample.ts||prev.raw!==sample.value){
+          const smoothed=opts.mode==='smart'?this._syncSmooth(item.key,sample.value,now,opts,state.optional):sample.value;
+          state.individual.set(item.key,{value:smoothed,raw:sample.value,sourceTs:sample.ts});
+        }
+        result.set(item.key,state.individual.get(item.key).value);
+      }
+      // Nicht bilanzrelevante Ring-/Warnsensoren glätten wir einzeln; sie
+      // dürfen weder Haus noch andere Quellen bei Ausfall blockieren.
+      for(const item of optional){
+        if(result.has(item.key))continue;
+        const sample=get(item);
+        if(!sample.fresh){result.set(item.key,null);continue;}
+        const prev=state.optional.get('source:'+item.key);
+        if(!prev||prev.ts!==sample.ts||prev.raw!==sample.value){
+          const value=opts.mode==='smart'?this._syncSmooth(item.key,sample.value,now,opts,state.optional):sample.value;
+          state.optional.set('source:'+item.key,{ts:sample.ts,raw:sample.value,value});
+        }
+        result.set(item.key,state.optional.get('source:'+item.key).value);
+      }
+      this._syncFrame=result;
     }
     _readState(ref){
       if(!this._hass?.states||!ref)return null;
@@ -485,6 +632,7 @@
     }
     _update(){
       if(!this._rendered||!this._hass)return;
+      this._prepareSync();
       const theme=this._config.theme||'auto';
       const dark=theme==='dark'||(theme==='auto'&&(this._hass.themes?.darkMode??window.matchMedia('(prefers-color-scheme: dark)').matches));
       this.shadowRoot.querySelector('ha-card').dataset.theme=dark?'dark':'light';
@@ -613,7 +761,21 @@
       if(this._active.battery)splitParts.push(`Speicher ${fmt(shares.battery)} %`);
       this._put('[data-energy-split]',splitParts.join(' · '));
       this._put('[data-fossil]',raw.fossil===null?'':`Fossiler Stromanteil ${fmt(raw.fossil)} %`);
-      this._put('[data-status]',complete&&deductions!==null?'LIVE':'TEILWEISE');
+      // Ein unabhängiger Haus-Sensor ermöglicht einen echten Bilanzabgleich.
+      const opts=this._syncOptions();
+      const state=this._syncState;
+      state.deviation=null;
+      if(opts.mode==='smart'&&hasEntity(this._entities.home)&&Number.isFinite(directHouse)&&Number.isFinite(fromBalance)){
+        state.deviation=directHouse-fromBalance;
+        if(Math.abs(state.deviation)>opts.toleranceW&&state.status==='SYNC')state.status='ABWEICHUNG';
+      }
+      const syncLabel=opts.mode==='off'?(complete&&deductions!==null?'LIVE':'TEILWEISE'):
+        (state.status==='SYNC'&&(!complete||deductions===null)?'TEILWEISE':state.status);
+      this._put('[data-status]',syncLabel);
+      const statusNode=this.shadowRoot.querySelector('[data-status]');
+      if(statusNode)statusNode.parentElement.title=state.deviation===null?
+        (opts.mode==='off'?'Aktuelle Sensorwerte':`Smart Sync: ${syncLabel}`):
+        `Hausbilanzabweichung: ${Math.round(state.deviation)} W (Toleranz ${opts.toleranceW} W)`;
       for(const item of this._individual){
         const value=amounts[item.id]===null?null:Math.max(0,amounts[item.id]*n(item.multiplier,1));
         this._put(`[data-device-value="${item.id}"]`,power(displayW(value,item.zero_tolerance_w??10)));
@@ -622,6 +784,9 @@
         const active=Number.isFinite(value)&&value>=Math.max(0,n(item.secondary_threshold_w,500));
         this.shadowRoot.querySelectorAll('.device').forEach(el=>{
           if(el.dataset.target!==item.id)return;
+          const stale=opts.mode!=='off'&&hasEntity(item.entity)&&amounts[item.id]===null;
+          el.dataset.syncStale=String(stale);
+          el.title=stale?'Smart Sync: Sensor veraltet oder nicht verfügbar':'';
           el.dataset.active=String(item.highlight_active_enabled===true&&active);
           el.style.setProperty('--device-active-color',color(item.highlight_active_color,'#50d584'));
           const extra=el.querySelector('.device-secondary');
@@ -867,6 +1032,15 @@
           ${this._field('Animation ab Leistung (W)','min_flow_w',c.min_flow_w??0,{number:true})}
           ${this._field('Hintergrund transparent','appearance.transparent_background',c.appearance?.transparent_background!==false,{check:true})}
           ${this._field('Ringbreite in % (50 = halb so breit)','appearance.ring_width_percent',c.appearance?.ring_width_percent??50,{number:true})}
+        </div></details>
+        <details data-section="sync"><summary>EMH Smart Sync – zeitlicher Abgleich</summary><div class="in fields">
+          ${this._field('Synchronisierung','sync.mode',c.sync?.mode||'off',{wide:true,options:[['off','AUS – Live (bisheriges Verhalten)'],['sync','SYNC – Zeitabgleich'],['smart','SMART SYNC – Zeitabgleich und Glättung']]})}
+          ${this._field('Zeitfenster (ms)','sync.window_ms',c.sync?.window_ms??5000,{number:true})}
+          ${this._field('Glättung (ms, nur Smart Sync)','sync.smoothing_ms',c.sync?.smoothing_ms??2000,{number:true})}
+          ${this._field('Bilanz-Toleranz (W)','sync.tolerance_w',c.sync?.tolerance_w??30,{number:true})}
+          ${this._field('Sensor-Timeout (s)','sync.sensor_timeout_s',c.sync?.sensor_timeout_s??15,{number:true})}
+          ${this._field('Individual-Kacheln synchronisieren','sync.include_individual',c.sync?.include_individual!==false,{check:true,wide:true})}
+          <p class="note" style="grid-column:1/-1">Haupt-Kacheln nutzen nur zeitlich zueinander passende Leistungswerte. Bei fehlenden Daten wird der letzte vollständige Satz höchstens bis zum Timeout gehalten; Individual-Sensoren blockieren die Hauptbilanz nie. 30 W Abweichung sind nur mit einem unabhängigen Hausverbrauchssensor überprüfbar. Bei langsam aktualisierenden Sensoren Timeout anpassen.</p>
         </div></details>
         <details data-section="animation"><summary>Animation – konstante Geschwindigkeit</summary><div class="in fields">
           ${this._field('Animationsart','animation.style',['dots','comet','pulse','dash'].includes(c.animation?.style)?c.animation.style:'dots',{options:[['dots','Lichtpunkte'],['comet','Kometen'],['pulse','Energieimpulse'],['dash','Fließende Striche']]})}

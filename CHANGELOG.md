@@ -1,5 +1,24 @@
 # Changelog
 
+## [1.0.3] – EMH Smart Sync und größere Individual-Symbole
+
+- Optionaler Smart-Sync-Modus: 5 Sekunden zeitliches Synchronisierungsfenster, 2 Sekunden Leistungswertglättung, 30 W Bilanz-Toleranz und 15 Sekunden Sensor-Timeout.
+- Alle aktiven Haupt-Leistungsquellen werden aus einem gemeinsamen, zeitlich konsistenten Datensatz angezeigt; kurze asynchrone Updates werden zurückgehalten.
+- Bis zu sechs Individual-Leistungen werden unabhängig geglättet; fehlende Individual-Sensoren blockieren die Hauptbilanz nicht.
+- Bilanzwarnung bei unabhängig konfiguriertem Hausverbrauchssensor; keine künstliche Bilanzkorrektur.
+- Individual-Symbole um 10 % vergrößert auf Desktop und Mobilgeräten.
+- Bisheriger Live-Modus unverändert und standardmäßig aktiv, wenn `sync` nicht gesetzt ist.
+
+
+## [1.0.2] – Vollständige automatische Zweigerkennung
+
+- Alle zu einem Haupt-Knoten gehörenden Entitäten werden für die Sichtbarkeit berücksichtigt, auch Ring-, Warn- und Status-Entitäten.
+- Keine manuelle Knoten-deaktivieren-Option; alte `show`-Einträge werden ignoriert.
+- Nur bei vollständig leerer Konfiguration eines Energiezweigs verschwinden Kreis, Ring, Verbindung und Animation.
+- Editor-Kacheln heißen PV, NETZ, BATTERIE und HOME.
+- Funktionalität der bisherigen v1.0.1-Demo und Darstellung beibehalten.
+
+
 ## [1.0.1] – Automatische Sichtbarkeit & reale Browser-Demo
 
 - Haupt-Kacheln im Editor als **PV**, **NETZ**, **BATTERIE**, **HOME** bezeichnet.
